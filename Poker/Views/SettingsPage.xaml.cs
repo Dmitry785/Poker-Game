@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Poker.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,14 +16,16 @@ using System.Windows.Shapes;
 
 namespace Poker.Views
 {
-    /// <summary>
-    /// Логика взаимодействия для GamePage.xaml
-    /// </summary>
     public partial class SettingsPage : UserControl
     {
         public SettingsPage()
         {
             InitializeComponent();
+        }
+        public SettingsPage(SettingsViewModel vm)
+            : this()
+        {
+            DataContext = vm;
         }
     }
 }

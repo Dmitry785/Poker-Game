@@ -10,5 +10,9 @@ namespace Poker.ViewModels
     public class GameInfoViewModel : BaseViewModel
     {
         private GameService _game;
+        public GameInfoViewModel(SignalBus sb)
+        {
+
+        }
     }
 }

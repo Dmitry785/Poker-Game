@@ -14,16 +14,16 @@ namespace Poker.Connection
     {
         private CancellationTokenSource _cts;
         private readonly TcpListener _listener;
-        public event Action<TcpClient, DataTransferBase> MessageReceived;
+        public event Action<TcpClient, DataTransferBase>? MessageReceived;
         public TcpConnection()
         {
             _cts = new CancellationTokenSource();
             _listener = new TcpListener(IPAddress.Any, 7777);//fix
             _ = Listen(_cts.Token);
         }
-        public async Task SendMove(ClientMove move)
+        public async Task<bool> Send(TcpClient client, string message)
         {
-
+            throw new Exception();
         }
         private async Task Listen(CancellationToken token)
         {

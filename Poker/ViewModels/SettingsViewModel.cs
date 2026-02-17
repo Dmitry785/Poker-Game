@@ -10,5 +10,9 @@ namespace Poker.ViewModels
     public class SettingsViewModel : BaseViewModel
     {
         private GameService _game;
+        public SettingsViewModel(SignalBus sb)
+        {
+
+        }
     }
 }

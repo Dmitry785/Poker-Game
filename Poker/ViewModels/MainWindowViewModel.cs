@@ -1,4 +1,5 @@
-﻿using Poker.Views;
+﻿using Poker.Models;
+using Poker.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,10 +34,11 @@ namespace Poker.ViewModels
         public MainWindowViewModel()
         {
             PageSelectedCommand = new RelayCommand(OnPageSelected);
+            var sb = new SignalBus();
             _pages = [
-                new GamePage(),
-                new GameInfoPage(),
-                new SettingsPage()
+                new GamePage(new GameViewModel(sb)),
+                new GameInfoPage(new GameInfoViewModel(sb)),
+                new SettingsPage(new SettingsViewModel(sb))
             ];
             currentPage = _pages[currentPageIndex];
         }

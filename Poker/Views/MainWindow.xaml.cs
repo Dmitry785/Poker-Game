@@ -15,12 +15,15 @@ namespace Poker.Views
 {
     public partial class MainWindow : Window
     {
-        public MainWindow(MainWindowViewModel vm)
+        public MainWindow()
         {
             InitializeComponent();
+        }
+        public MainWindow(MainWindowViewModel vm)
+            :this()
+        {
             this.DataContext = vm;
         }
-        public MainWindow() { }
             /*private void AnimatePageTransition(int targetIndex, bool isLeft)
             {
                 //transform

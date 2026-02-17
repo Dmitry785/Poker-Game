@@ -15,12 +15,12 @@ namespace Poker.Models
         private TcpConnection _connection;
         private List<TcpClient>? _connectedClients;
         private TcpClient? _hostClient;
-
-        public event Action? GameChanged;
-        public GameService()
+        private SignalBus _signalBus;
+        public GameService(SignalBus signalBus)
         {
             _connection = new TcpConnection();
             _connection.MessageReceived += OnMessageReceived;
+            _signalBus = signalBus;
         }
 
         private void OnMessageReceived(TcpClient client, DataTransferBase message)
