@@ -9,6 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="data\player.png" />
+    <None Remove="data\pokertable.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Views\SettingsPage.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -19,6 +24,11 @@
 
   <ItemGroup>
     <Folder Include="Models\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="data\player.png" />
+    <Resource Include="data\pokertable.png" />
   </ItemGroup>
 
 </Project>

@@ -32,17 +32,28 @@
         </Style>
     </UserControl.Resources>
     <Grid Background="Gray">
-        <StackPanel>
-            <StackPanel Orientation="Vertical">
-                <Label Content="Your state"/>
-                <TextBlock Text="{Binding CurrentState}"/>
-            </StackPanel>
-            <StackPanel Orientation="Vertical">
-                <Label Content="Host IP"/>
-                <TextBox Text="{Binding HostIP, Mode=TwoWay}"/>
-                <Button Content="Connect" 
+        <ScrollViewer>
+            <StackPanel>
+                <StackPanel Orientation="Vertical">
+                    <Label Content="Your IP"/>
+                    <TextBlock Text="{Binding CurrentIP}"/>
+                </StackPanel>
+                <StackPanel Orientation="Vertical">
+                    <Label Content="Your state"/>
+                    <TextBlock Text="{Binding CurrentState}"/>
+                </StackPanel>
+                <StackPanel Orientation="Vertical">
+                    <Label Content="Connect"/>
+                    <TextBox Text="{Binding HostIP, Mode=TwoWay}"/>
+                    <Button Content="Connect" 
                         Command="{Binding ConnectCommand}"/>
+                </StackPanel>
+                <StackPanel Orientation="Vertical">
+                    <Label Content="Host"/>
+                    <Button Content="Start host" 
+            Command="{Binding StartHostCommand}"/>
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>
