@@ -15,6 +15,16 @@ namespace Poker.Connection
         private CancellationTokenSource _cts;
         private readonly TcpListener _listener;
         public event Action<TcpClient, DataTransferBase>? MessageReceived;
+        public IPAddress CurrentIP
+        {
+            get {
+                foreach(var address in Dns.GetHostAddresses(Dns.GetHostName(), AddressFamily.InterNetwork))
+                {
+                    return address;
+                }
+                throw new Exception();
+            }
+        }
         public TcpConnection()
         {
             _cts = new CancellationTokenSource();

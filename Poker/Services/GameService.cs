@@ -25,6 +25,7 @@ namespace Poker.Services
                 _signalBus.Publish(new StateChangedMessage());
             }
         }
+        public IPAddress CurrentIP => _connection.CurrentIP;
         public GameService(SignalBus signalBus)
         {
             _connection = new TcpConnection();
