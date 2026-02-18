@@ -1,4 +1,4 @@
-﻿using Poker.Models;
+﻿using Poker.Services;
 using Poker.Views;
 using System;
 using System.Collections.Generic;
@@ -13,15 +13,15 @@ namespace Poker.ViewModels
 {
     public class MainWindowViewModel : BaseViewModel
     {
-        private readonly UserControl[] _pages;
+        private readonly List<BaseViewModel> _pages;
         private int currentPageIndex;
-        private UserControl currentPage;
-        public UserControl CurrentPage
+        private BaseViewModel currentPageViewModel;
+        public BaseViewModel CurrentPageViewModel
         {
-            get => currentPage;
+            get => currentPageViewModel;
             set
             {
-                currentPage = value;
+                currentPageViewModel = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(CurrentPageName));
             }
@@ -30,26 +30,27 @@ namespace Poker.ViewModels
         {
             get => (currentPageIndex == 0) ? "Game" : (currentPageIndex == 1) ? "Game info" : "Settings";
         }
-        public RelayCommand PageSelectedCommand { get; }
+        public RelayCommand SelectPageCommand { get; }
         public MainWindowViewModel()
         {
-            PageSelectedCommand = new RelayCommand(OnPageSelected);
+            SelectPageCommand = new RelayCommand(OnPageSelected);
             var sb = new SignalBus();
-            _pages = [
-                new GamePage(new GameViewModel(sb)),
-                new GameInfoPage(new GameInfoViewModel(sb)),
-                new SettingsPage(new SettingsViewModel(sb))
-            ];
-            currentPage = _pages[currentPageIndex];
+            var gs = new GameService(sb);
+            _pages = new List<BaseViewModel>() {
+                new GameViewModel(gs, sb),
+                new GameInfoViewModel(gs, sb),
+                new SettingsViewModel(gs, sb)
+            };
+            currentPageViewModel = _pages[currentPageIndex];
         }
         private void OnPageSelected(object? parameter)
         {
             if (!int.TryParse(parameter?.ToString(), out int pageNumber))
                 return;
-            if (pageNumber < 0 || pageNumber >= _pages.Length)
+            if (pageNumber < 0 || pageNumber >= _pages.Count)
                 return;
             currentPageIndex = pageNumber;
-            CurrentPage = _pages[currentPageIndex];
+            CurrentPageViewModel = _pages[currentPageIndex];
         }
     }
 }

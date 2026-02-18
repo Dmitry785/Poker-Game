@@ -1,4 +1,4 @@
-﻿using Poker.Models;
+﻿using Poker.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +10,9 @@ namespace Poker.ViewModels
     public class GameInfoViewModel : BaseViewModel
     {
         private GameService _game;
-        public GameInfoViewModel(SignalBus sb)
+        public GameInfoViewModel(GameService game, SignalBus sb)
         {
-
+            _game = game;
         }
     }
 }

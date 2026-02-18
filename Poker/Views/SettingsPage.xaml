@@ -3,10 +3,46 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Poker.Views"
+             xmlns:local="clr-namespace:Poker.ViewModels"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Background="Green">
-        <TextBlock Text="settings"/>
+    <UserControl.Resources>
+        <Style TargetType="Label">
+            <Setter Property="Padding" Value="20 10 0 0"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="WhiteSmoke"/>
+        </Style>
+        <Style TargetType="TextBlock">
+            <Setter Property="Padding" Value="30 5 0 0"/>
+            <Setter Property="FontSize" Value="26"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="MinWidth" Value="300"/>
+            <Setter Property="Margin" Value="30 5 0 0"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="FontSize" Value="18"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="10 0 10 0"/>
+            <Setter Property="Margin" Value="30 5 0 0"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="FontSize" Value="18"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid Background="Gray">
+        <StackPanel>
+            <StackPanel Orientation="Vertical">
+                <Label Content="Your state"/>
+                <TextBlock Text="{Binding CurrentState}"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical">
+                <Label Content="Host IP"/>
+                <TextBox Text="{Binding HostIP, Mode=TwoWay}"/>
+                <Button Content="Connect" 
+                        Command="{Binding ConnectCommand}"/>
+            </StackPanel>
+        </StackPanel>
     </Grid>
 </UserControl>

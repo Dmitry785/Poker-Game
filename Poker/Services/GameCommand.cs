@@ -5,7 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Poker.Models
+namespace Poker.Services
 {
     public abstract record GameCommand;
     public record BetCommand(int amount) : GameCommand;

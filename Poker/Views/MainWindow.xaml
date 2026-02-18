@@ -3,10 +3,24 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Poker"
+        xmlns:vm="clr-namespace:Poker.ViewModels"
+        xmlns:views="clr-namespace:Poker.Views"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Window.Resources>
+        <Style TargetType="ContentControl">
+            <Setter Property="Validation.ErrorTemplate">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <StackPanel>
+                            <AdornedElementPlaceholder x:Name="Placeholder"/>
+                            <TextBlock Foreground="Red" 
+                        Text="{Binding ElementName=Placeholder, Path=(Validation.Errors)[0].ErrorContent}"/>
+                        </StackPanel>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <ControlTemplate TargetType="Button" x:Key="PageButtonStyle">
             <Border x:Name="border" Margin="10" Height="50" CornerRadius="5" BorderThickness="3" BorderBrush="Black" Background="LightGray">
                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -31,7 +45,19 @@
             <TextBlock Padding="20" Text="{Binding CurrentPageName}" FontSize="20" FontWeight="Bold"/>
         </Grid>
         <Grid Grid.Row="1">
-            <ContentControl Content="{Binding CurrentPage}"/>
+            <ContentControl Content="{Binding CurrentPageViewModel}">
+                <ContentControl.Resources>
+                    <DataTemplate DataType="{x:Type vm:GameViewModel}">
+                        <views:GamePage/>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:GameInfoViewModel}">
+                        <views:GameInfoPage/>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+                        <views:SettingsPage/>
+                    </DataTemplate>
+                </ContentControl.Resources>
+            </ContentControl>
         </Grid>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
@@ -39,16 +65,16 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Button Content="Game" Tag="0" 
-                    Command="{Binding PageSelectedCommand}"
+            <Button Content="Game"
+                    Command="{Binding SelectPageCommand}"
                     CommandParameter="0"
                     Grid.Column="0" Template="{StaticResource PageButtonStyle}"/>
-            <Button Content="Info" Tag="1" 
-                    Command="{Binding PageSelectedCommand}"
+            <Button Content="Info"
+                    Command="{Binding SelectPageCommand}"
                     CommandParameter="1"
                     Grid.Column="1" Template="{StaticResource PageButtonStyle}"/>
-            <Button Content="Settings" Tag="2" 
-                    Command="{Binding PageSelectedCommand}"
+            <Button Content="Settings"
+                    Command="{Binding SelectPageCommand}"
                     CommandParameter="2"
                     Grid.Column="2" Template="{StaticResource PageButtonStyle}"/>
         </Grid>
