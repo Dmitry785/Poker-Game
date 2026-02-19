@@ -84,31 +84,46 @@ namespace Poker.ViewModels
             RaiseCommand = new Command(OnRaise);
             FoldCommand = new Command(OnFold);
             PokerTableViewModel = new PokerTableViewModel();
+            sb.Subscribe<StateChangedMessage>(HandleStateChanged);
             _game = game;
         }
-        private void OnBet()
+        private async void OnBet()
         {
-            MessageBox.Show("bet");
+            await _game.HandleLocalCommand(new BetCommand(CurrentBet));
         }
-        private void OnCall()
+        private async void OnCall()
         {
-            MessageBox.Show("call");
+            await _game.HandleLocalCommand(new CallCommand());
         }
-        private void OnCheck()
+        private async void OnCheck()
         {
-            MessageBox.Show("check");
+            await _game.HandleLocalCommand(new CheckCommand());
         }
-        private void OnRaise()
+        private async void OnRaise()
         {
-            MessageBox.Show("raise");
+            await _game.HandleLocalCommand(new RaiseCommand(CurrentBet));
         }
-        private void OnFold()
+        private async void OnFold()
         {
-            MessageBox.Show("fold");
+            await _game.HandleLocalCommand(new FoldCommand());
         }
-        private void HandleGameChanged()
+        private void HandleStateChanged(StateChangedMessage message)
         {
-
+            switch (_game.State)
+            {
+                case Connection.ConnectionState.NotConnected:
+                    //после того как пользователь отключился
+                    //очистить игру
+                    break;
+                case Connection.ConnectionState.Connecting:
+                    break;
+                case Connection.ConnectionState.Connected:
+                    //инициализировать игру
+                    break;
+                case Connection.ConnectionState.Hosting:
+                    //инициализировать игру
+                    break;
+            }
         }
         private int currentBet = 200;
         private int maxBet = 500;

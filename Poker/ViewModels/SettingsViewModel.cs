@@ -14,8 +14,7 @@ namespace Poker.ViewModels
     public class SettingsViewModel : BaseViewModel
     {
         private GameService _game;
-        private string hostIP = "127.0.0.1:7777";
-        public string CurrentState => _game.CurrentState.ToString();
+        public string CurrentState => _game.State.ToString();
         public string HostIP
         {
             get => hostIP;
@@ -43,16 +42,16 @@ namespace Poker.ViewModels
         {
             MessageBox.Show("Start host");
         }
-        private void OnConnect()
+        private async void OnConnect()
         {
             if (!IPEndPoint.TryParse(HostIP, out var ip))
                 return;
-            MessageBox.Show(HostIP);
-            _game.Connect(ip);
+            await _game.HandleLocalCommand(new ConnectCommand(ip));
         }
         private void HandleStatusChanged(StateChangedMessage message)
         {
             OnPropertyChanged(nameof(CurrentState));
         }
+        private string hostIP = "127.0.0.1:7777";
     }
 }

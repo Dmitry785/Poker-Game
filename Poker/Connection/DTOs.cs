@@ -10,7 +10,7 @@ namespace Poker.Connection
     public abstract record DataTransferBase { }
 
     //при Conected/NotConnected
-    public record ClientMove(ClientMoveType moveType, int? amount) : DataTransferBase;
+    public record ClientMove(ClientMoveType moveType, int? amount = null) : DataTransferBase;
     }
     public enum ClientMoveType
     {
@@ -24,7 +24,7 @@ namespace Poker.Connection
     }
     //при Connecting ничего не отправляем
     //при Hosting
-    public record GameUpdated(Guid playeId, GameUpdatedType updateType, int? amount) : DataTransferBase;//отправляем всем подключенным
+    public record GameUpdated(Guid playeId, GameUpdatedType updateType, int? amount = null) : DataTransferBase;//отправляем всем подключенным
 
     public enum GameUpdatedType
     {
@@ -38,7 +38,7 @@ namespace Poker.Connection
     }
     //при десинхронизации или при первом
     //подключении клиента к хосту
-    public record GameState : DataTransferBase;
+    public record GameState(bool connectAccepted) : DataTransferBase;
         //название комнаты
         //список игроков
         //состояние игры

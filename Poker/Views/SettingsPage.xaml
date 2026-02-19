@@ -32,7 +32,7 @@
         </Style>
     </UserControl.Resources>
     <Grid Background="Gray">
-        <ScrollViewer>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <StackPanel Orientation="Vertical">
                     <Label Content="Your IP"/>
