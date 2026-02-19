@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Poker.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +24,11 @@ namespace Poker.Views
         public Player()
         {
             InitializeComponent();
+        }
+        public Player(PlayerViewModel vm)
+            : this()
+        {
+            DataContext = vm;
         }
     }
 }

@@ -1,11 +1,15 @@
-﻿<UserControl x:Class="Poker.Views.CardTable"
+﻿<UserControl x:Class="Poker.Views.PokerTable"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Poker.Views"
+             xmlns:vm="clr-namespace:Poker.ViewModels"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.DataContext>
+        <vm:PokerTableViewModel/>
+    </UserControl.DataContext>
     <UserControl.Resources>
         <local:HalfConverter x:Key="HalfConverter"/>
     </UserControl.Resources>
@@ -14,24 +18,27 @@
             <Image Margin="50" Source="/data/pokertable.png" Stretch="Uniform" Canvas.Top="{Binding RelativeSource={RelativeSource AncestorType=Canvas}, Path=ActualHeight, Converter={StaticResource HalfConverter}}">
                 <Image.RenderTransform>
                     <TranslateTransform X="0" Y="0"/>
-                    <!-- Половина ширины и высоты кнопки -->
                 </Image.RenderTransform>
             </Image>
             <Canvas>
-                <local:Player Canvas.Left="50" Canvas.Top="50"
+                <local:Player DataContext="{Binding Player3}" Visibility="{Binding DataContext.Player3Visibility, RelativeSource={RelativeSource AncestorType=Canvas}}"
+                              Canvas.Left="50" Canvas.Top="50"
                         VerticalAlignment="Top" HorizontalAlignment="Left"/>
-                <local:Player Canvas.Top="50" Canvas.Left="{Binding RelativeSource={RelativeSource AncestorType=Canvas}, Path=ActualWidth, Converter={StaticResource HalfConverter}}"
+                <local:Player DataContext="{Binding Player4}" Visibility="{Binding DataContext.Player4Visibility, RelativeSource={RelativeSource AncestorType=Canvas}}"
+                               Canvas.Top="50" Canvas.Left="{Binding RelativeSource={RelativeSource AncestorType=Canvas}, Path=ActualWidth, Converter={StaticResource HalfConverter}}"
                         VerticalAlignment="Top" HorizontalAlignment="Center">
                     <local:Player.RenderTransform>
                         <TranslateTransform X="-25" Y="-25"/>
-                        <!-- Половина ширины и высоты кнопки -->
                     </local:Player.RenderTransform>
                 </local:Player>
-                <local:Player Canvas.Right="50" Canvas.Top="50"
+                <local:Player DataContext="{Binding Player5}" Visibility="{Binding DataContext.Player5Visibility, RelativeSource={RelativeSource AncestorType=Canvas}}"
+                               Canvas.Right="50" Canvas.Top="50"
                         VerticalAlignment="Top" HorizontalAlignment="Right"/>
-                <local:Player Canvas.Left="50" Canvas.Bottom="50"
+                <local:Player DataContext="{Binding Player2}" Visibility="{Binding DataContext.Player2Visibility, RelativeSource={RelativeSource AncestorType=Canvas}}"
+                              Canvas.Left="50" Canvas.Bottom="50"
                         VerticalAlignment="Bottom" HorizontalAlignment="Left"/>
-                <local:Player Canvas.Left="{Binding RelativeSource={RelativeSource AncestorType=Canvas}, 
+                <local:Player DataContext="{Binding Player1}" Visibility="{Binding DataContext.Player1Visibility, RelativeSource={RelativeSource AncestorType=Canvas}}"
+                               Canvas.Left="{Binding RelativeSource={RelativeSource AncestorType=Canvas}, 
                 Path=ActualWidth, Converter={StaticResource HalfConverter}}" Canvas.Bottom="50"
                         VerticalAlignment="Bottom" HorizontalAlignment="Center">
                     <local:Player.RenderTransform>
@@ -39,7 +46,8 @@
                         <!-- Половина ширины и высоты кнопки -->
                     </local:Player.RenderTransform>
                 </local:Player>
-                <local:Player Canvas.Right="50" Canvas.Bottom="50"
+                <local:Player DataContext="{Binding Player6}" Visibility="{Binding DataContext.Player6Visibility, RelativeSource={RelativeSource AncestorType=Canvas}}"
+                               Canvas.Right="50" Canvas.Bottom="50"
                         VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
             </Canvas>
             <local:Bord HorizontalAlignment="Center" VerticalAlignment="Center"/>

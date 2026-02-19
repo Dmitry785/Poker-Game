@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Poker.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,14 +16,16 @@ using System.Windows.Shapes;
 
 namespace Poker.Views
 {
-    /// <summary>
-    /// Логика взаимодействия для CardTable.xaml
-    /// </summary>
-    public partial class CardTable : UserControl
+    public partial class PokerTable : UserControl
     {
-        public CardTable()
+        public PokerTable()
         {
             InitializeComponent();
+        }
+        public PokerTable(PokerTableViewModel vm)
+            : this()
+        {
+            DataContext = vm;
         }
     }
 }

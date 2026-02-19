@@ -18,7 +18,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
-        <local:CardTable Grid.Row="0"/>
+        <local:PokerTable DataContext="{Binding PokerTableViewModel}" Grid.Row="0"/>
         <Grid Grid.Row="1">
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
@@ -28,13 +28,15 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0">Bet</Button>
-                <Button Grid.Column="1">Fold</Button>
-                <Button Grid.Column="2">Check</Button>
-                <Button Grid.Column="3">Raise</Button>
-                <Slider Grid.Column="4"></Slider>
-                <TextBlock Grid.Column="5" Text="550"/>
+                <Button Grid.Column="0" Command="{Binding BetCommand}" IsEnabled="{Binding CanBet}">Bet</Button>
+                <Button Grid.Column="1" Command="{Binding FoldCommand}" IsEnabled="{Binding CanFold}">Fold</Button>
+                <Button Grid.Column="2" Command="{Binding CheckCommand}" IsEnabled="{Binding CanCheck}">Check</Button>
+                <Button Grid.Column="3" Command="{Binding RaiseCommand}" IsEnabled="{Binding CanRaise}">Raise</Button>
+                <Button Grid.Column="4" Command="{Binding CallCommand}" IsEnabled="{Binding CanCall}">Call</Button>
+                <Slider Grid.Column="5" Maximum="{Binding MaxBet}" Value="{Binding CurrentBet, Mode=TwoWay}"/>
+                <TextBlock Grid.Column="6" Text="{Binding CurrentBet}"/>
             </Grid>
         </Grid>
     </Grid>
