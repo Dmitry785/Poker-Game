@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Poker.Services
 {
@@ -33,6 +34,8 @@ namespace Poker.Services
 
         private async void OnMessageReceived(IPEndPoint endPoint, DataTransferBase message)
         {
+            MessageBox.Show($"message: {message.ToString()}", "Wow",
+                MessageBoxButton.OK, MessageBoxImage.Hand);
             switch (state)
             {
                 case ConnectionState.NotConnected:
@@ -138,6 +141,7 @@ namespace Poker.Services
 
     public partial class GameService
     {
+        #region HandleLocalCommand
         private async Task<bool> HandleLocalCommand_NotConnected(GameCommand command)
         {
             switch (command)
@@ -149,6 +153,9 @@ namespace Poker.Services
                     }
                     else
                         State = ConnectionState.NotConnected;
+                    break;
+                case StartHostCommand c:
+                    State = ConnectionState.Hosting;
                     break;
             }
             return false;
@@ -228,6 +235,8 @@ namespace Poker.Services
             }
             return false;
         }
+        #endregion
+        #region OnMessageReceivedCommand
         private async Task OnMessageReceived_NotConnected(IPEndPoint endPoint, DataTransferBase message)
         {
 
@@ -253,4 +262,5 @@ namespace Poker.Services
 
         }
     }
+    #endregion
 }

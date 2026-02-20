@@ -20,27 +20,35 @@ namespace Poker.ViewModels
             get => hostIP;
             set
             {
-                HostIP = value;
+                hostIP = value;
                 OnPropertyChanged();
             }
         }
         public string CurrentIP => _game.CurrentIP.ToString();
         public ICommand ConnectCommand{ get; }
         public ICommand StartHostCommand { get; }
+        public ICommand DisconnectCommand { get; }
+        public bool CanConnect => 
+            _game.State is Connection.ConnectionState.NotConnected;
+        public bool CanHost =>
+            _game.State is Connection.ConnectionState.NotConnected;
+        public bool CanDisconnect =>
+            _game.State is not Connection.ConnectionState.NotConnected;
         public SettingsViewModel(GameService game, SignalBus sb)
         {
             _game = game;
             ConnectCommand = new Command(OnConnect);
             StartHostCommand = new Command(OnStartHost);
+            DisconnectCommand = new Command(OnDisconnect);
             sb.Subscribe<StateChangedMessage>(HandleStatusChanged);
             NetworkChange.NetworkAddressChanged += (s, e) =>
             {
                 OnPropertyChanged(nameof(CurrentIP));
             };
         }
-        private void OnStartHost()
+        private async void OnStartHost()
         {
-            MessageBox.Show("Start host");
+            await _game.HandleLocalCommand(new StartHostCommand());
         }
         private async void OnConnect()
         {
@@ -48,9 +56,16 @@ namespace Poker.ViewModels
                 return;
             await _game.HandleLocalCommand(new ConnectCommand(ip));
         }
+        private async void OnDisconnect()
+        {
+            await _game.HandleLocalCommand(new DisconnectCommand());
+        }
         private void HandleStatusChanged(StateChangedMessage message)
         {
             OnPropertyChanged(nameof(CurrentState));
+            OnPropertyChanged(nameof(CanConnect));
+            OnPropertyChanged(nameof(CanHost));
+            OnPropertyChanged(nameof(CanDisconnect));
         }
         private string hostIP = "127.0.0.1:7777";
     }

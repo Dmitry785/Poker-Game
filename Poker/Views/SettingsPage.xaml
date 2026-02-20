@@ -45,13 +45,18 @@
                 <StackPanel Orientation="Vertical">
                     <Label Content="Connect"/>
                     <TextBox Text="{Binding HostIP, Mode=TwoWay}"/>
-                    <Button Content="Connect" 
+                    <Button Content="Connect" IsEnabled="{Binding CanConnect}"
                         Command="{Binding ConnectCommand}"/>
                 </StackPanel>
                 <StackPanel Orientation="Vertical">
                     <Label Content="Host"/>
-                    <Button Content="Start host" 
-            Command="{Binding StartHostCommand}"/>
+                    <Button Content="Start host" IsEnabled="{Binding CanHost}"
+                        Command="{Binding StartHostCommand}"/>
+                </StackPanel>
+                <StackPanel Orientation="Vertical">
+                    <Label Content="Disconnect"/>
+                    <Button Content="Disconnect" IsEnabled="{Binding CanDisconnect}"
+                        Command="{Binding DisconnectCommand}"/>
                 </StackPanel>
             </StackPanel>
         </ScrollViewer>

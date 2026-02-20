@@ -13,6 +13,7 @@ namespace Poker.Services
     public record FoldCommand : GameCommand;
     public record CheckCommand : GameCommand;
     public record RaiseCommand(int amount) : GameCommand;
+    public record StartHostCommand : GameCommand;
     public record ConnectCommand(IPEndPoint hostEndPoint) : GameCommand;
     public record DisconnectCommand : GameCommand;
     //пригласить
