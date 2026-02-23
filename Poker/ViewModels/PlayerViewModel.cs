@@ -13,7 +13,7 @@ namespace Poker.ViewModels
         private PlayerInfo info;
         private string currentMove = string.Empty;
         public string Name => info.Name;
-        public int Money => info.Money;
+        public decimal Money => info.Money;
         public string CurrentMove
         {
             get => currentMove;

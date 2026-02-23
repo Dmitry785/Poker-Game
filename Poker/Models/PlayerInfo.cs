@@ -11,20 +11,34 @@ namespace Poker.Models
 {
     public class PlayerInfo
     {
+        public Guid PlayerId;
         public string Name { get; set; }
-        public int Money { get; set; }
+        public decimal Money { get; set; }
         [JsonIgnore]
-        public PokerCard[]? Hand { get; set; }
+        public HandCards? Hand { get; set; }
+        public decimal CurrentBet { get; set; }
+        public int SeatIndex { get; set; }
+        public PlayerStatus Status;
         public PlayerInfo(string name, int money)
         {
             Name = name;
             Money = money;
         }
+        public void SetHand(PokerCard card1, PokerCard card2)
+        {
+            Hand = new HandCards(card1, card2);
+        }
+    }
+    public enum PlayerStatus
+    {
+        Active,
+        AllIn,
+        Folded,
+        Out
     }
     public class ConnectedPlayerInfo : PlayerInfo//нужно для хоста
     {
         public IPEndPoint ClientEndPoint;
-        //карты пользователя
         public ConnectedPlayerInfo(string name, int money, IPEndPoint client) 
             :base(name, money)
         {

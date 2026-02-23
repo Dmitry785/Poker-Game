@@ -146,4 +146,40 @@ namespace Poker.Models
             return card;
         }
     }
+    public class HandCards
+    {
+        public PokerCard Card1 { get; set; }
+        public PokerCard Card2 { get; set; }
+        public HandCards(PokerCard card1, PokerCard card2)
+        {
+            Card1 = card1;
+            Card2 = card2;
+        }
+    }
+    public class CommunityCards
+    {
+        private List<PokerCard> cards = new();
+        public List<PokerCard> Cards
+        {
+            get => cards.ToList();
+        }
+        public CommunityCards()
+        {
+
+        }
+        public void Reset()
+        {
+            cards = new();
+        }
+        public bool CanAddCard()
+        {
+            return cards.Count > 4;
+        }
+        public void AddCard(PokerCard card)
+        {
+            if (!CanAddCard())
+                throw new Exception();
+            cards.Add(card);
+        }
+    }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Poker.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,12 +32,60 @@ namespace Poker.Services
     }
     #region SignalBusMessages
     public abstract class BaseMessage;
-    public class GameUpdatedMessage
+    public class PlayerListChanged : BaseMessage
     {
-        public string GameData;
-        public GameUpdatedMessage(string gameData)
+        public List<PlayerInfo> PlayerList;
+        public PlayerListChanged(List<PlayerInfo> gameData)
         {
-            GameData = gameData;
+            PlayerList = gameData;
+        }
+    }
+    public class PlayerStateChanged : BaseMessage
+    {
+        public int SeatIndex;
+        public PlayerStatus Status;
+        public decimal CurrentBet;
+        public decimal Balance;
+        public PlayerStateChanged(int seatIndex, PlayerStatus status, decimal currentBet, decimal balance)
+        {
+            SeatIndex = seatIndex;
+            Status = status;
+            CurrentBet = currentBet;
+            Balance = balance;
+        }
+    }
+    public class RoundStageChanged : BaseMessage
+    {
+        public GameStage Stage;
+        public CommunityCards Cards;
+        public decimal Pot;
+        public int DealerIndex;
+        public RoundStageChanged(GameStage stage, CommunityCards cards, decimal pot, int dealerIndex)
+        {
+            Stage = stage;
+            Cards = cards;
+            Pot = pot;
+            DealerIndex = dealerIndex;
+        }
+    }
+    public class CardsReceived : BaseMessage
+    {
+        public HandCards Cards;
+        public CardsReceived(HandCards cards)
+        {
+            Cards = cards;
+        }
+    }
+    public class GameResultsOccurred : BaseMessage
+    {
+        public Dictionary<int, HandCards> Cards;
+        public List<int> Winners;
+        public decimal WinAmount;
+        public GameResultsOccurred(Dictionary<int, HandCards> cards, List<int> winners, decimal winAmount)
+        {
+            Cards = cards;
+            Winners = winners;
+            WinAmount = winAmount;
         }
     }
     public class StateChangedMessage : BaseMessage{ }

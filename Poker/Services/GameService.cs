@@ -98,6 +98,14 @@ namespace Poker.Services
         }
         //отправить приглашение
         private CardDeck cardDeck;
+        private CommunityCards communityCards;
+        private decimal pot;
+        private int currentPlayerIndex;
+        private int dealerIndex;
+        private GameStage gameStage = GameStage.None;
+        private List<PlayerInfo> players;
+        private decimal minStep;
+        private decimal currentMaxBet;
 
         private ConnectionState state = ConnectionState.NotConnected;
         private readonly TcpConnection _connection;
@@ -108,7 +116,15 @@ namespace Poker.Services
         private readonly SignalBus _signalBus;
         private TaskCompletionSource<bool>? connectionTcs;
     }
-
+    public enum GameStage
+    {
+        None,
+        PreFlop,
+        Flop,
+        Turn,
+        River,
+        Showdown
+    }
 
 
 
@@ -174,10 +190,6 @@ namespace Poker.Services
                     break;
                 case RaiseCommand c:
                     break;
-                case ConnectCommand c:
-                    State = ConnectionState.Connecting;
-                    await _connection.Send(c.hostEndPoint, new ClientMove(ClientMoveType.Connect));
-                    break;
                 case DisconnectCommand c:
                     State = ConnectionState.NotConnected;
                     _ = _connection.Send(hostEndPoint!, new ClientMove(ClientMoveType.Disconnect));
@@ -189,20 +201,6 @@ namespace Poker.Services
         {
             switch (command)
             {
-                case BetCommand c:
-                    break;
-                case CallCommand c:
-                    break;
-                case FoldCommand c:
-                    break;
-                case CheckCommand c:
-                    break;
-                case RaiseCommand c:
-                    break;
-                case ConnectCommand c:
-                    State = ConnectionState.Connecting;
-                    await _connection.Send(c.hostEndPoint, new ClientMove(ClientMoveType.Connect));
-                    break;
                 case DisconnectCommand c:
                     State = ConnectionState.NotConnected;
                     _ = _connection.Send(hostEndPoint!, new ClientMove(ClientMoveType.Disconnect));
@@ -223,10 +221,6 @@ namespace Poker.Services
                 case CheckCommand c:
                     break;
                 case RaiseCommand c:
-                    break;
-                case ConnectCommand c:
-                    State = ConnectionState.Connecting;
-                    await _connection.Send(c.hostEndPoint, new ClientMove(ClientMoveType.Connect));
                     break;
                 case DisconnectCommand c:
                     State = ConnectionState.NotConnected;
@@ -259,7 +253,12 @@ namespace Poker.Services
         }
         private async Task OnMessageReceived_Hosting(IPEndPoint endPoint, DataTransferBase message)
         {
+            switch (message)
+            {
+                case ClientMove c:
 
+                    break;
+            }
         }
     }
     #endregion
