@@ -35,7 +35,8 @@ namespace Poker.ViewModels
         {
             SelectPageCommand = new RelayCommand(OnPageSelected);
             var sb = new SignalBus();
-            var gs = new GameService(sb);
+            var gameConfig = new GameConfig(1000, -1, -1, 10, 20, 6);
+            var gs = new GameService(sb, gameConfig);
             _pages = new List<BaseViewModel>() {
                 new GameViewModel(gs, sb),
                 new GameInfoViewModel(gs, sb),

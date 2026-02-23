@@ -12,6 +12,24 @@ using System.Windows;
 
 namespace Poker.Services
 {
+    public class GameConfig
+    {
+        public decimal StartMoney;
+        public decimal MinBet;
+        public decimal MaxBet;
+        public decimal SmallBling;
+        public decimal BigBlind;
+        public int MaxPlayers;
+        public GameConfig(decimal startMoney, decimal minBet, decimal maxBet, decimal smallBling, decimal bigBlind, int maxPlayers)
+        {
+            StartMoney = startMoney;
+            MinBet = minBet;
+            MaxBet = maxBet;
+            SmallBling = smallBling;
+            BigBlind = bigBlind;
+            MaxPlayers = maxPlayers;
+        }
+    }
     public partial class GameService
     {
         public ConnectionState State
@@ -23,12 +41,13 @@ namespace Poker.Services
                 _signalBus.Publish(new StateChangedMessage());
             }
         }
-        public IPAddress CurrentIP => _connection.CurrentIP;
-        public GameService(SignalBus signalBus)
+        public IPEndPoint CurrentEndPoint => _connection.CurrentIP;
+        public GameService(SignalBus signalBus, GameConfig config)
         {
             _connection = new TcpConnection();
             _connection.MessageReceived += OnMessageReceived;
             _signalBus = signalBus;
+            _config = config;
             cardDeck = new CardDeck();
         }
 
@@ -97,17 +116,17 @@ namespace Poker.Services
             }
         }
         //отправить приглашение
-        private CardDeck cardDeck;
-        private CommunityCards communityCards;
-        private decimal pot;
-        private int currentPlayerIndex;
-        private int dealerIndex;
+        private CardDeck cardDeck = new CardDeck();
+        private CommunityCards communityCards = new CommunityCards();
+        private decimal pot = 0;
+        private int currentPlayerIndex = 0;
+        private int dealerIndex = 0;
         private GameStage gameStage = GameStage.None;
-        private List<PlayerInfo> players;
-        private decimal minStep;
-        private decimal currentMaxBet;
+        private List<PlayerInfo> players = new List<PlayerInfo>();
+        private decimal currentMaxBet = 0;
 
         private ConnectionState state = ConnectionState.NotConnected;
+        private GameConfig _config;
         private readonly TcpConnection _connection;
         //для хоста
         private List<ConnectedPlayerInfo>? connectedPlayers;
@@ -157,6 +176,14 @@ namespace Poker.Services
 
     public partial class GameService
     {
+        private void OnStartHosting()
+        {
+            connectedPlayers = new List<ConnectedPlayerInfo>();
+            players.Add(new PlayerInfo("Me", _config.StartMoney, 0));
+            gameStage = GameStage.None;
+            _signalBus.Publish(new PlayerListChanged(players));
+            _signalBus.Publish(new RoundStageChanged(gameStage, communityCards, 0, 0));
+    }
         #region HandleLocalCommand
         private async Task<bool> HandleLocalCommand_NotConnected(GameCommand command)
         {
@@ -172,6 +199,7 @@ namespace Poker.Services
                     break;
                 case StartHostCommand c:
                     State = ConnectionState.Hosting;
+                    OnStartHosting();
                     break;
             }
             return false;

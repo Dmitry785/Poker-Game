@@ -18,8 +18,8 @@ namespace Poker.Models
         public HandCards? Hand { get; set; }
         public decimal CurrentBet { get; set; }
         public int SeatIndex { get; set; }
-        public PlayerStatus Status;
-        public PlayerInfo(string name, int money)
+        public PlayerStatus Status = PlayerStatus.Out;
+        public PlayerInfo(string name, decimal money, int seatIndex)
         {
             Name = name;
             Money = money;
@@ -39,8 +39,8 @@ namespace Poker.Models
     public class ConnectedPlayerInfo : PlayerInfo//нужно для хоста
     {
         public IPEndPoint ClientEndPoint;
-        public ConnectedPlayerInfo(string name, int money, IPEndPoint client) 
-            :base(name, money)
+        public ConnectedPlayerInfo(string name, int money, int seatIndex, IPEndPoint client) 
+            :base(name, money, seatIndex)
         {
             ClientEndPoint = client;
         }

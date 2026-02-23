@@ -46,12 +46,14 @@ namespace Poker.Services
         public PlayerStatus Status;
         public decimal CurrentBet;
         public decimal Balance;
-        public PlayerStateChanged(int seatIndex, PlayerStatus status, decimal currentBet, decimal balance)
+        public string Move;
+        public PlayerStateChanged(int seatIndex, PlayerStatus status, decimal currentBet, decimal balance, string move)
         {
             SeatIndex = seatIndex;
             Status = status;
             CurrentBet = currentBet;
             Balance = balance;
+            Move = move;
         }
     }
     public class RoundStageChanged : BaseMessage

@@ -24,7 +24,7 @@ namespace Poker.ViewModels
                 OnPropertyChanged();
             }
         }
-        public string CurrentIP => _game.CurrentIP.ToString();
+        public string CurrentIP => _game.CurrentEndPoint.ToString();
         public ICommand ConnectCommand{ get; }
         public ICommand StartHostCommand { get; }
         public ICommand DisconnectCommand { get; }

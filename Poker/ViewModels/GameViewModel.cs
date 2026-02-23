@@ -1,4 +1,5 @@
-﻿using Poker.Services;
+﻿using Poker.Models;
+using Poker.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -85,6 +86,7 @@ namespace Poker.ViewModels
             FoldCommand = new Command(OnFold);
             PokerTableViewModel = new PokerTableViewModel();
             sb.Subscribe<StateChangedMessage>(HandleStateChanged);
+            sb.Subscribe<PlayerListChanged>(HandlePlayerListChanged);
             _game = game;
         }
         private async void OnBet()
@@ -106,6 +108,14 @@ namespace Poker.ViewModels
         private async void OnFold()
         {
             await _game.HandleLocalCommand(new FoldCommand());
+        }
+        private void HandlePlayerListChanged(PlayerListChanged message)
+        {
+            PokerTableViewModel.ClearPlayers();
+            foreach(var player in message.PlayerList)
+            {
+                PokerTableViewModel.SetPlayer(player);
+            }
         }
         private void HandleStateChanged(StateChangedMessage message)
         {

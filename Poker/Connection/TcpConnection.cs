@@ -19,20 +19,27 @@ namespace Poker.Connection
         private readonly Dictionary<IPEndPoint, TcpClient> _activeClients = new();
         private readonly int _sendAttempts = 3;
         public event Action<IPEndPoint, DataTransferBase>? MessageReceived;
-        public IPAddress CurrentIP
+        public IPEndPoint CurrentIP
         {
             get {
-                foreach(var address in Dns.GetHostAddresses(Dns.GetHostName(), AddressFamily.InterNetwork))
+                foreach(IPAddress address in Dns.GetHostAddresses(Dns.GetHostName(), AddressFamily.InterNetwork))
                 {
-                    return address;
+                    return new IPEndPoint(address, Port);
                 }
                 throw new Exception();
+            }
+        }
+        public int Port
+        {
+            get
+            {
+                return ((IPEndPoint)_listener.LocalEndpoint).Port;
             }
         }
         public TcpConnection()
         {
             _cts = new CancellationTokenSource();
-            _listener = new TcpListener(IPAddress.Any, 7777);//fix
+            _listener = new TcpListener(IPAddress.Any, 0);
             _ = Listen(_cts.Token);
         }
         public async Task<bool> Send(IPEndPoint clientIP, DataTransferBase message)

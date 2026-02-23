@@ -1,4 +1,6 @@
-﻿using Poker.Services;
+﻿using Poker.Models;
+using Poker.Services;
+using Poker.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -78,12 +80,45 @@ namespace Poker.ViewModels
         public Visibility Player4Visibility => (Player4 is null) ? Visibility.Hidden : Visibility.Visible;
         public Visibility Player5Visibility => (Player5 is null) ? Visibility.Hidden : Visibility.Visible;
         public Visibility Player6Visibility => (Player6 is null) ? Visibility.Hidden : Visibility.Visible;
+        public void SetPlayer(PlayerInfo player)
+        {
+            switch (player.SeatIndex)
+            {
+                case 0:
+                    Player1 = new PlayerViewModel(player);
+                    break;
+                case 1:
+                    Player2 = new PlayerViewModel(player);
+                    break;
+                case 2:
+                    Player3 = new PlayerViewModel(player);
+                    break;
+                case 3:
+                    Player4 = new PlayerViewModel(player);
+                    break;
+                case 4:
+                    Player5 = new PlayerViewModel(player);
+                    break;
+                case 5:
+                    Player6 = new PlayerViewModel(player);
+                    break;
+            }
+        }
+        public void ClearPlayers()
+        {
+            Player1 = null;
+            Player2 = null;
+            Player3 = null;
+            Player4 = null;
+            Player5 = null;
+            Player6 = null;
+        }
         public PokerTableViewModel()
         {
-            Player1 = new PlayerViewModel(new Models.PlayerInfo("Dmitry", 1000));
-            Player3 = new PlayerViewModel(new Models.PlayerInfo("Oleg", 2000));
+            Player1 = new PlayerViewModel(new Models.PlayerInfo("Dmitry", 1000, 0));
+            Player3 = new PlayerViewModel(new Models.PlayerInfo("Oleg", 2000, 0));
             Player3.CurrentMove = "Fold";
-            Player4 = new PlayerViewModel(new Models.PlayerInfo("Vlad", 1500));
+            Player4 = new PlayerViewModel(new Models.PlayerInfo("Vlad", 1500, 0));
         }
         private PlayerViewModel? player1;
         private PlayerViewModel? player2;
