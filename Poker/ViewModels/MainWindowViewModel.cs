@@ -1,4 +1,5 @@
-﻿using Poker.Services;
+﻿using Poker.Connection;
+using Poker.Services;
 using Poker.Views;
 using System;
 using System.Collections.Generic;
@@ -36,11 +37,16 @@ namespace Poker.ViewModels
             SelectPageCommand = new RelayCommand(OnPageSelected);
             var sb = new SignalBus();
             var gameConfig = new GameConfig(1000, -1, -1, 10, 20, 6);
-            var gs = new GameService(sb, gameConfig);
+            var connection = new TcpConnection();
+            var gs = new GameService(sb, gameConfig, connection);
+
+
+            var gvm = new GameViewModel(gs, sb);
+            var givm = new GameInfoViewModel(gs, sb);
+            var svm = new SettingsViewModel(gs, sb);
+            connection.Logger = new ListBoxLogger(svm.SettingsLog);
             _pages = new List<BaseViewModel>() {
-                new GameViewModel(gs, sb),
-                new GameInfoViewModel(gs, sb),
-                new SettingsViewModel(gs, sb)
+                gvm, givm, svm
             };
             currentPageViewModel = _pages[currentPageIndex];
         }

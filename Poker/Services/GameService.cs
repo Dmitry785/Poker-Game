@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Xml.Linq;
 
 namespace Poker.Services
 {
@@ -42,15 +43,29 @@ namespace Poker.Services
             }
         }
         public IPEndPoint CurrentEndPoint => _connection.CurrentIP;
-        public GameService(SignalBus signalBus, GameConfig config)
+        public GameService(SignalBus signalBus, GameConfig config, TcpConnection connection)
         {
-            _connection = new TcpConnection();
+            _connection = connection;
             _connection.MessageReceived += OnMessageReceived;
             _signalBus = signalBus;
             _config = config;
             cardDeck = new CardDeck();
         }
-
+        public string ClientName
+        {
+            get => clientName;
+            set
+            {
+                clientName = value;
+                if (State is ConnectionState.Connected ||
+                State is ConnectionState.Hosting)
+                {
+                    players.First(x => x.SeatIndex == 0).Name = clientName;
+                    _signalBus.Publish(new PlayerListChanged(players));
+                }
+                //fix если я хост, то сообщить всем имя измен
+            }
+        }
         private async void OnMessageReceived(IPEndPoint endPoint, DataTransferBase message)
         {
             MessageBox.Show($"message: {message.ToString()}", "Wow",
@@ -93,7 +108,11 @@ namespace Poker.Services
                 connectionTcs = new TaskCompletionSource<bool>();
                 State = ConnectionState.Connecting;
                 hostEndPoint = hostIP;
-                await _connection.Send(hostIP, new ClientMove(ClientMoveType.Connect));
+                bool sendRes = await _connection.Send(hostIP, new ClientConnectData(ClientName));
+                if (!sendRes)
+                {
+                    return false;
+                }
                 var timeoutTask = Task.Delay(TimeSpan.FromSeconds(5));
 
                 var completedTask = await Task.WhenAny(
@@ -124,7 +143,9 @@ namespace Poker.Services
         private GameStage gameStage = GameStage.None;
         private List<PlayerInfo> players = new List<PlayerInfo>();
         private decimal currentMaxBet = 0;
+        private decimal lastRaiseStep;
 
+        private string clientName = "Player";
         private ConnectionState state = ConnectionState.NotConnected;
         private GameConfig _config;
         private readonly TcpConnection _connection;
@@ -179,11 +200,23 @@ namespace Poker.Services
         private void OnStartHosting()
         {
             connectedPlayers = new List<ConnectedPlayerInfo>();
-            players.Add(new PlayerInfo("Me", _config.StartMoney, 0));
+            players.Add(new PlayerInfo(ClientName, _config.StartMoney, 0));
             gameStage = GameStage.None;
             _signalBus.Publish(new PlayerListChanged(players));
             _signalBus.Publish(new RoundStageChanged(gameStage, communityCards, 0, 0));
-    }
+        }
+        private void OnDisconnected()
+        {
+            gameStage = GameStage.None;
+            hostEndPoint = null;
+            players.Clear();
+            _signalBus.Publish(new PlayerListChanged(players));
+            _signalBus.Publish(new RoundStageChanged(gameStage, communityCards, 0, 0));
+        }
+        private void OnConnected(GameState gameState)
+        {
+            MessageBox.Show($"OnConnected: подключились к {hostEndPoint}");
+        }
         #region HandleLocalCommand
         private async Task<bool> HandleLocalCommand_NotConnected(GameCommand command)
         {
@@ -220,7 +253,8 @@ namespace Poker.Services
                     break;
                 case DisconnectCommand c:
                     State = ConnectionState.NotConnected;
-                    _ = _connection.Send(hostEndPoint!, new ClientMove(ClientMoveType.Disconnect));
+                    _ = _connection.Send(hostEndPoint!, new ClientDisconnectData(""));
+                    OnDisconnected();
                     break;
             }
             return false;
@@ -231,7 +265,7 @@ namespace Poker.Services
             {
                 case DisconnectCommand c:
                     State = ConnectionState.NotConnected;
-                    _ = _connection.Send(hostEndPoint!, new ClientMove(ClientMoveType.Disconnect));
+                    _ = _connection.Send(hostEndPoint!, new ClientDisconnectData(""));
                     break;
             }
             return false;
@@ -252,7 +286,8 @@ namespace Poker.Services
                     break;
                 case DisconnectCommand c:
                     State = ConnectionState.NotConnected;
-                    _ = _connection.Send(hostEndPoint!, new ClientMove(ClientMoveType.Disconnect));
+                    //отослать всем клиентам об завершении (disconnect all)
+                    OnDisconnected();
                     break;
             }
             return false;
@@ -261,21 +296,33 @@ namespace Poker.Services
         #region OnMessageReceivedCommand
         private async Task OnMessageReceived_NotConnected(IPEndPoint endPoint, DataTransferBase message)
         {
-
+            //может прийти пришлашение
         }
         private async Task OnMessageReceived_Connected(IPEndPoint endPoint, DataTransferBase message)
         {
-
+            if (endPoint != hostEndPoint)
+                return;
+            switch (message)
+            {
+                case GameUpdated c:
+                    break;
+                case GameState c:
+                    break;
+            }
         }
         private async Task OnMessageReceived_Connecting(IPEndPoint endPoint, DataTransferBase message)
         {
+            if (endPoint != hostEndPoint)
+                return;
             switch (message)
             {
                 case GameState c:
-                    if (c.connectAccepted)
-                        connectionTcs?.TrySetResult(true);
-                    else
-                        connectionTcs?.TrySetResult(false);
+                    connectionTcs?.TrySetResult(true);
+                    OnConnected(c);
+                    break;
+                case ConnectionDeclined c:
+                    connectionTcs?.TrySetResult(false);
+                    MessageBox.Show($"Не удалось подключиться: {c.reason}");
                     break;
             }
         }
@@ -284,7 +331,14 @@ namespace Poker.Services
             switch (message)
             {
                 case ClientMove c:
-
+                    break;
+                case ClientConnectData c:
+                    players.Add(new PlayerInfo(clientName, _config.StartMoney, 1));
+                    _signalBus.Publish(new PlayerListChanged(players));
+                    await _connection.Send(endPoint, new GameState("current room", 0, 0, 0, 0, 0, communityCards, gameStage, currentPlayerIndex, null, players));
+                    MessageBox.Show($"{c.name} подключился");
+                    break;
+                case ClientDisconnectData c:
                     break;
             }
         }

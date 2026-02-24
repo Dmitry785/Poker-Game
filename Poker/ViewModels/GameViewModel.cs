@@ -111,11 +111,7 @@ namespace Poker.ViewModels
         }
         private void HandlePlayerListChanged(PlayerListChanged message)
         {
-            PokerTableViewModel.ClearPlayers();
-            foreach(var player in message.PlayerList)
-            {
-                PokerTableViewModel.SetPlayer(player);
-            }
+            PokerTableViewModel.UpdatePlayers(message.PlayerList);
         }
         private void HandleStateChanged(StateChangedMessage message)
         {

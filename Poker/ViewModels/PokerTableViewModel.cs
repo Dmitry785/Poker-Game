@@ -13,7 +13,6 @@ namespace Poker.ViewModels
 {
     public class PokerTableViewModel : BaseViewModel
     {
-        private GameService _game;
         public PlayerViewModel? Player1
         {
             get => player1;
@@ -80,29 +79,44 @@ namespace Poker.ViewModels
         public Visibility Player4Visibility => (Player4 is null) ? Visibility.Hidden : Visibility.Visible;
         public Visibility Player5Visibility => (Player5 is null) ? Visibility.Hidden : Visibility.Visible;
         public Visibility Player6Visibility => (Player6 is null) ? Visibility.Hidden : Visibility.Visible;
-        public void SetPlayer(PlayerInfo player)
+        public void UpdatePlayers(List<PlayerInfo> players)
         {
-            switch (player.SeatIndex)
-            {
-                case 0:
-                    Player1 = new PlayerViewModel(player);
-                    break;
-                case 1:
-                    Player2 = new PlayerViewModel(player);
-                    break;
-                case 2:
-                    Player3 = new PlayerViewModel(player);
-                    break;
-                case 3:
-                    Player4 = new PlayerViewModel(player);
-                    break;
-                case 4:
-                    Player5 = new PlayerViewModel(player);
-                    break;
-                case 5:
-                    Player6 = new PlayerViewModel(player);
-                    break;
-            }
+            PlayerInfo? player;
+            player = players.FirstOrDefault(x => x.SeatIndex == 0);
+            if (player != null)
+                Player1 = new PlayerViewModel(player);
+            else
+                Player1 = null;
+
+            player = players.FirstOrDefault(x => x.SeatIndex == 1);
+            if (player != null)
+                Player2 = new PlayerViewModel(player);
+            else
+                Player2 = null;
+
+            player = players.FirstOrDefault(x => x.SeatIndex == 2);
+            if (player != null)
+                Player3 = new PlayerViewModel(player);
+            else
+                Player3 = null;
+
+            player = players.FirstOrDefault(x => x.SeatIndex == 3);
+            if (player != null)
+                Player4 = new PlayerViewModel(player);
+            else
+                Player4 = null;
+
+            player = players.FirstOrDefault(x => x.SeatIndex == 4);
+            if (player != null)
+                Player5 = new PlayerViewModel(player);
+            else
+                Player5 = null;
+
+            player = players.FirstOrDefault(x => x.SeatIndex == 5);
+            if (player != null)
+                Player6 = new PlayerViewModel(player);
+            else
+                Player6 = null;
         }
         public void ClearPlayers()
         {
@@ -115,10 +129,12 @@ namespace Poker.ViewModels
         }
         public PokerTableViewModel()
         {
+            /*
             Player1 = new PlayerViewModel(new Models.PlayerInfo("Dmitry", 1000, 0));
             Player3 = new PlayerViewModel(new Models.PlayerInfo("Oleg", 2000, 0));
             Player3.CurrentMove = "Fold";
             Player4 = new PlayerViewModel(new Models.PlayerInfo("Vlad", 1500, 0));
+            */
         }
         private PlayerViewModel? player1;
         private PlayerViewModel? player2;

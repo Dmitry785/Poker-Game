@@ -1,6 +1,7 @@
 ﻿using Poker.Services;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -34,6 +35,7 @@ namespace Poker.ViewModels
             _game.State is Connection.ConnectionState.NotConnected;
         public bool CanDisconnect =>
             _game.State is not Connection.ConnectionState.NotConnected;
+        public ObservableCollection<string> SettingsLog { get; set; } = new();
         public SettingsViewModel(GameService game, SignalBus sb)
         {
             _game = game;
