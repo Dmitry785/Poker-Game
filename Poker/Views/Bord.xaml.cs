@@ -15,9 +15,6 @@ using System.Windows.Shapes;
 
 namespace Poker.Views
 {
-    /// <summary>
-    /// Логика взаимодействия для Bord.xaml
-    /// </summary>
     public partial class Bord : UserControl
     {
         public Bord()

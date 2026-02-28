@@ -15,7 +15,7 @@ namespace Poker.Services
     public record RaiseCommand(int amount) : GameCommand;
     public record StartHostCommand : GameCommand;
     public record ConnectCommand(IPEndPoint hostEndPoint) : GameCommand;
-    public record DisconnectCommand : GameCommand;
+    public record DisconnectCommand(string reason = "") : GameCommand;
     //как stophost или stopconnecting
     //пригласить
 }

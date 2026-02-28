@@ -150,6 +150,7 @@ namespace Poker.Models
     {
         public PokerCard Card1 { get; set; }
         public PokerCard Card2 { get; set; }
+        public List<PokerCard> Cards => new List<PokerCard>() { Card1, Card2 };
         public HandCards(PokerCard card1, PokerCard card2)
         {
             Card1 = card1;
@@ -162,6 +163,13 @@ namespace Poker.Models
         public List<PokerCard> Cards
         {
             get => cards.ToList();
+            set
+            {
+                for(int i = 0; i < value.Count && CanAddCard(); i++)
+                {
+                    AddCard(value[i]);
+                }
+            }
         }
         public CommunityCards()
         {

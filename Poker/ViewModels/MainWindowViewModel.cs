@@ -45,6 +45,7 @@ namespace Poker.ViewModels
             var givm = new GameInfoViewModel(gs, sb);
             var svm = new SettingsViewModel(gs, sb);
             connection.Logger = new ListBoxLogger(svm.SettingsLog);
+            gs.Logger = new ListBoxLogger(svm.SettingsLog);
             _pages = new List<BaseViewModel>() {
                 gvm, givm, svm
             };

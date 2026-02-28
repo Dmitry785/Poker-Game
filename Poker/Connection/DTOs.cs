@@ -1,6 +1,7 @@
 ﻿using Poker.Connection;
 using Poker.Models;
 using Poker.Services;
+using Poker.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,6 @@ namespace Poker.Connection
     public record ClientConnectData(string name) : DataTransferBase;
     public record ClientDisconnectData(string reason) : DataTransferBase;
     public record ClientMove(ClientMoveType moveType, int? amount = null) : DataTransferBase;
-
     public enum ClientMoveType
     {
         Call,
@@ -42,8 +42,9 @@ namespace Poker.Connection
         Connected
     }
     public record GameState(string roomName, int dealerIndex,
-        decimal smallBlind, decimal bigBlind, decimal minRaise,
-        decimal pot, CommunityCards communityCards, GameStage stage,
-        int currentPlayerIndex, HandCards? hand, List<PlayerInfo> players) : DataTransferBase;
+        decimal smallBlind, decimal bigBlind, decimal minBet,
+        decimal pot, List<PokerCard> communityCards, GameStage stage,
+        int currentPlayerIndex, List<PlayerInfo> players, Guid playerId) : DataTransferBase;
+    public record DealCardsData(List<PokerCard> hand);//нужно зашифровать
     public record ConnectionDeclined(string reason) : DataTransferBase;
 }

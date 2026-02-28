@@ -16,9 +16,6 @@ using System.Windows.Shapes;
 
 namespace Poker.Views
 {
-    /// <summary>
-    /// Логика взаимодействия для Player.xaml
-    /// </summary>
     public partial class Player : UserControl
     {
         public Player()

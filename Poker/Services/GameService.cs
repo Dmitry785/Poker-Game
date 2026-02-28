@@ -13,26 +13,9 @@ using System.Xml.Linq;
 
 namespace Poker.Services
 {
-    public class GameConfig
-    {
-        public decimal StartMoney;
-        public decimal MinBet;
-        public decimal MaxBet;
-        public decimal SmallBling;
-        public decimal BigBlind;
-        public int MaxPlayers;
-        public GameConfig(decimal startMoney, decimal minBet, decimal maxBet, decimal smallBling, decimal bigBlind, int maxPlayers)
-        {
-            StartMoney = startMoney;
-            MinBet = minBet;
-            MaxBet = maxBet;
-            SmallBling = smallBling;
-            BigBlind = bigBlind;
-            MaxPlayers = maxPlayers;
-        }
-    }
     public partial class GameService
     {
+        public ILogger Logger = new NullLogger();
         public ConnectionState State
         {
             get => state;
@@ -48,28 +31,49 @@ namespace Poker.Services
             _connection = connection;
             _connection.MessageReceived += OnMessageReceived;
             _signalBus = signalBus;
-            _config = config;
+            ApplyConfig(config);
             cardDeck = new CardDeck();
+            players = new PlayerListManager(maxPlayers);
+        }
+        private void ApplyConfig(GameConfig config)
+        {
+            startMoney = config.StartMoney;
+            minBet = config.MinBet;
+            maxBet = config.MaxBet;
+            smallBling = config.SmallBling;
+            bigBlind = config.BigBlind;
+            maxPlayers = config.MaxPlayers;
         }
         public string ClientName
         {
             get => clientName;
             set
             {
-                clientName = value;
                 if (State is ConnectionState.Connected ||
                 State is ConnectionState.Hosting)
                 {
-                    players.First(x => x.SeatIndex == 0).Name = clientName;
-                    _signalBus.Publish(new PlayerListChanged(players));
+                    players.ChangedPlayerName(clientName, value);
+                    _signalBus.Publish(new PlayerListChanged(players.Players));
                 }
+                clientName = value;
                 //fix если я хост, то сообщить всем имя измен
+            }
+        }
+        public string RoomName
+        {
+            get => roomName;
+            set
+            {
+                roomName = value;
+                _signalBus.Publish(new RoomNameChanged());
+                if (State is ConnectionState.Hosting)
+                {
+                    //fix если я хост, то сообщить всем об изменении названия комнаты
+                }
             }
         }
         private async void OnMessageReceived(IPEndPoint endPoint, DataTransferBase message)
         {
-            MessageBox.Show($"message: {message.ToString()}", "Wow",
-                MessageBoxButton.OK, MessageBoxImage.Hand);
             switch (state)
             {
                 case ConnectionState.NotConnected:
@@ -92,23 +96,23 @@ namespace Poker.Services
             {
                 case ConnectionState.NotConnected:
                     return await HandleLocalCommand_NotConnected(command);
-                case ConnectionState.Connecting:
-                    return await HandleLocalCommand_Connected(command);
                 case ConnectionState.Connected:
+                    return await HandleLocalCommand_Connected(command);
+                case ConnectionState.Connecting:
                     return await HandleLocalCommand_Connecting(command);
                 case ConnectionState.Hosting:
                     return await HandleLocalCommand_Hosting(command);
             }
             return false;
         }
-        private async Task<bool> Connect(IPEndPoint hostIP)
+        private async Task<bool> Connect(IPEndPoint hostEP)
         {
             try
             {
                 connectionTcs = new TaskCompletionSource<bool>();
                 State = ConnectionState.Connecting;
-                hostEndPoint = hostIP;
-                bool sendRes = await _connection.Send(hostIP, new ClientConnectData(ClientName));
+                hostEndPoint = hostEP;
+                bool sendRes = await _connection.Send(hostEP, new ClientConnectData(ClientName));
                 if (!sendRes)
                 {
                     return false;
@@ -141,16 +145,19 @@ namespace Poker.Services
         private int currentPlayerIndex = 0;
         private int dealerIndex = 0;
         private GameStage gameStage = GameStage.None;
-        private List<PlayerInfo> players = new List<PlayerInfo>();
+        private PlayerListManager players;
         private decimal currentMaxBet = 0;
-        private decimal lastRaiseStep;
-
+        private decimal lastRaiseStep = 0;
+        private decimal startMoney;
+        private decimal minBet;
+        private decimal maxBet;
+        private decimal smallBling;
+        private decimal bigBlind;
+        private int maxPlayers;
         private string clientName = "Player";
+        private string roomName = $"Player's room";
         private ConnectionState state = ConnectionState.NotConnected;
-        private GameConfig _config;
         private readonly TcpConnection _connection;
-        //для хоста
-        private List<ConnectedPlayerInfo>? connectedPlayers;
         //для клиента
         private IPEndPoint? hostEndPoint;
         private readonly SignalBus _signalBus;
@@ -164,7 +171,7 @@ namespace Poker.Services
         Turn,
         River,
         Showdown
-    }
+    } 
 
 
 
@@ -199,23 +206,54 @@ namespace Poker.Services
     {
         private void OnStartHosting()
         {
-            connectedPlayers = new List<ConnectedPlayerInfo>();
-            players.Add(new PlayerInfo(ClientName, _config.StartMoney, 0));
+            State = ConnectionState.Hosting;
+            players.AddPlayer(new PlayerInfo(ClientName, startMoney, 0));
             gameStage = GameStage.None;
-            _signalBus.Publish(new PlayerListChanged(players));
-            _signalBus.Publish(new RoundStageChanged(gameStage, communityCards, 0, 0));
+            OnPlayerListChanged();
+            OnRoundStageChanged();
         }
         private void OnDisconnected()
         {
+            State = ConnectionState.NotConnected;
             gameStage = GameStage.None;
             hostEndPoint = null;
-            players.Clear();
-            _signalBus.Publish(new PlayerListChanged(players));
-            _signalBus.Publish(new RoundStageChanged(gameStage, communityCards, 0, 0));
+            players.Reset();
+            OnPlayerListChanged();
+            OnRoundStageChanged();
         }
-        private void OnConnected(GameState gameState)
+        private void ApplyGameState(GameState s)
         {
-            MessageBox.Show($"OnConnected: подключились к {hostEndPoint}");
+            communityCards.Cards = s.communityCards;
+            currentPlayerIndex = s.currentPlayerIndex;
+            RoomName = s.roomName;
+            dealerIndex = s.dealerIndex;
+            smallBling = s.smallBlind;
+            bigBlind = s.bigBlind;
+            minBet = s.minBet;
+            pot = s.pot;
+            players.Players = s.players;
+            MessageBox.Show(string.Join(", ", players.Players.Select(x =>new { x.PlayerId, x.Name })));
+            MessageBox.Show(s.playerId.ToString());
+            players.CorrelateById(s.playerId);
+            gameStage = s.stage;
+            OnPlayerListChanged();
+            OnRoundStageChanged();
+        }
+        private async Task HandleClientConnecting(IPEndPoint endPoint, ClientConnectData data)
+        {
+            if (State is not ConnectionState.Hosting)
+                return;
+            var playerInfo = new ConnectedPlayerInfo(data.name, startMoney, endPoint);
+            Guid? playerId = players.AddPlayer(playerInfo);
+            if (playerId is null)
+            {
+                await _connection.Send(endPoint, new ConnectionDeclined("Игроков слишком много, попробуйте позднее"));
+                return;
+            }
+            OnPlayerListChanged();
+            await _connection.Send(endPoint, new GameState(roomName, dealerIndex,
+                smallBling, bigBlind, minBet, pot, communityCards.Cards,
+                gameStage, currentPlayerIndex, players.Players.ToList(), (Guid)playerId));
         }
         #region HandleLocalCommand
         private async Task<bool> HandleLocalCommand_NotConnected(GameCommand command)
@@ -231,7 +269,6 @@ namespace Poker.Services
                         State = ConnectionState.NotConnected;
                     break;
                 case StartHostCommand c:
-                    State = ConnectionState.Hosting;
                     OnStartHosting();
                     break;
             }
@@ -252,8 +289,7 @@ namespace Poker.Services
                 case RaiseCommand c:
                     break;
                 case DisconnectCommand c:
-                    State = ConnectionState.NotConnected;
-                    _ = _connection.Send(hostEndPoint!, new ClientDisconnectData(""));
+                    _ = _connection.Send(hostEndPoint!, new ClientDisconnectData(c.reason));
                     OnDisconnected();
                     break;
             }
@@ -264,8 +300,8 @@ namespace Poker.Services
             switch (command)
             {
                 case DisconnectCommand c:
-                    State = ConnectionState.NotConnected;
-                    _ = _connection.Send(hostEndPoint!, new ClientDisconnectData(""));
+                    _ = _connection.Send(hostEndPoint!, new ClientDisconnectData(c.reason));
+                    OnDisconnected();
                     break;
             }
             return false;
@@ -285,7 +321,6 @@ namespace Poker.Services
                 case RaiseCommand c:
                     break;
                 case DisconnectCommand c:
-                    State = ConnectionState.NotConnected;
                     //отослать всем клиентам об завершении (disconnect all)
                     OnDisconnected();
                     break;
@@ -307,22 +342,22 @@ namespace Poker.Services
                 case GameUpdated c:
                     break;
                 case GameState c:
+                    ApplyGameState(c);
                     break;
             }
         }
         private async Task OnMessageReceived_Connecting(IPEndPoint endPoint, DataTransferBase message)
         {
-            if (endPoint != hostEndPoint)
+            if (endPoint.ToString() != hostEndPoint.ToString())
                 return;
             switch (message)
             {
                 case GameState c:
                     connectionTcs?.TrySetResult(true);
-                    OnConnected(c);
+                    ApplyGameState(c);
                     break;
                 case ConnectionDeclined c:
                     connectionTcs?.TrySetResult(false);
-                    MessageBox.Show($"Не удалось подключиться: {c.reason}");
                     break;
             }
         }
@@ -333,15 +368,39 @@ namespace Poker.Services
                 case ClientMove c:
                     break;
                 case ClientConnectData c:
-                    players.Add(new PlayerInfo(clientName, _config.StartMoney, 1));
-                    _signalBus.Publish(new PlayerListChanged(players));
-                    await _connection.Send(endPoint, new GameState("current room", 0, 0, 0, 0, 0, communityCards, gameStage, currentPlayerIndex, null, players));
-                    MessageBox.Show($"{c.name} подключился");
+                    await HandleClientConnecting(endPoint, c);
                     break;
                 case ClientDisconnectData c:
                     break;
             }
         }
+        private void OnRoundStageChanged()
+        {
+            _signalBus.Publish(new RoundStageChanged(gameStage, communityCards, 0, 0));
+        }
+        private void OnPlayerListChanged()
+        {
+            _signalBus.Publish(new PlayerListChanged(players.Players));
+        }
     }
     #endregion
+
+    public class GameConfig
+    {
+        public decimal StartMoney;
+        public decimal MinBet;
+        public decimal MaxBet;
+        public decimal SmallBling;
+        public decimal BigBlind;
+        public int MaxPlayers;
+        public GameConfig(decimal startMoney, decimal minBet, decimal maxBet, decimal smallBling, decimal bigBlind, int maxPlayers)
+        {
+            StartMoney = startMoney;
+            MinBet = minBet;
+            MaxBet = maxBet;
+            SmallBling = smallBling;
+            BigBlind = bigBlind;
+            MaxPlayers = maxPlayers;
+        }
+    }
 }

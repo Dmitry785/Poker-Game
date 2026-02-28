@@ -85,7 +85,6 @@ namespace Poker.ViewModels
             RaiseCommand = new Command(OnRaise);
             FoldCommand = new Command(OnFold);
             PokerTableViewModel = new PokerTableViewModel();
-            sb.Subscribe<StateChangedMessage>(HandleStateChanged);
             sb.Subscribe<PlayerListChanged>(HandlePlayerListChanged);
             _game = game;
         }
@@ -112,24 +111,6 @@ namespace Poker.ViewModels
         private void HandlePlayerListChanged(PlayerListChanged message)
         {
             PokerTableViewModel.UpdatePlayers(message.PlayerList);
-        }
-        private void HandleStateChanged(StateChangedMessage message)
-        {
-            switch (_game.State)
-            {
-                case Connection.ConnectionState.NotConnected:
-                    //после того как пользователь отключился
-                    //очистить игру
-                    break;
-                case Connection.ConnectionState.Connecting:
-                    break;
-                case Connection.ConnectionState.Connected:
-                    //инициализировать игру
-                    break;
-                case Connection.ConnectionState.Hosting:
-                    //инициализировать игру
-                    break;
-            }
         }
         private int currentBet = 200;
         private int maxBet = 500;

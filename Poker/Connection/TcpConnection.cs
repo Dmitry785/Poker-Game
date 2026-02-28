@@ -157,7 +157,7 @@ namespace Poker.Connection
         {
             try
             {
-                Logger.Message($"htmess: handle message {endPoint}");
+                Logger.Message($"htmess: handle message {endPoint}: {messageString}");
                 if (!(JsonSerializer.Deserialize<DataTransferBase>(messageString) is DataTransferBase message))
                     return;
                 Logger.Message($"htmess: handle message succesful {endPoint}: {message.ToString()}");

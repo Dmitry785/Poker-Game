@@ -91,5 +91,6 @@ namespace Poker.Services
         }
     }
     public class StateChangedMessage : BaseMessage{ }
+    public class RoomNameChanged : BaseMessage { }
     #endregion
 }
