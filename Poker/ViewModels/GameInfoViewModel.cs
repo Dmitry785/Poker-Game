@@ -11,11 +11,10 @@ namespace Poker.ViewModels
     {
         public string PlayerName
         {
-            get => playerName;
+            get => _game.ClientName;
             set
             {
-                playerName = value;
-                _game.ClientName = playerName;
+                _game.ClientName = value;
                 OnPropertyChanged();
             }
         }
@@ -23,8 +22,6 @@ namespace Poker.ViewModels
         public GameInfoViewModel(GameService game, SignalBus sb)
         {
             _game = game;
-            playerName = _game.ClientName;
         }
-        private string playerName;
     }
 }

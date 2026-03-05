@@ -84,44 +84,18 @@ namespace Poker.ViewModels
         {
             BordViewModel.UpdateCards(cards);
         }
-        public void UpdatePlayers(List<PlayerInfo> players)
+        public void UpdatePlayers(List<PlayerInfo> players, 
+            int currentPlayerIndex,
+            int dealerIndex)
         {
-            PlayerInfo? player;
-            player = players.FirstOrDefault(x => x.SeatIndex == 0);
-            if (player != null)
-                Player1 = new PlayerViewModel(player);
-            else
-                Player1 = null;
-
-            player = players.FirstOrDefault(x => x.SeatIndex == 1);
-            if (player != null)
-                Player2 = new PlayerViewModel(player);
-            else
-                Player2 = null;
-
-            player = players.FirstOrDefault(x => x.SeatIndex == 2);
-            if (player != null)
-                Player3 = new PlayerViewModel(player);
-            else
-                Player3 = null;
-
-            player = players.FirstOrDefault(x => x.SeatIndex == 3);
-            if (player != null)
-                Player4 = new PlayerViewModel(player);
-            else
-                Player4 = null;
-
-            player = players.FirstOrDefault(x => x.SeatIndex == 4);
-            if (player != null)
-                Player5 = new PlayerViewModel(player);
-            else
-                Player5 = null;
-
-            player = players.FirstOrDefault(x => x.SeatIndex == 5);
-            if (player != null)
-                Player6 = new PlayerViewModel(player);
-            else
-                Player6 = null;
+            PlayerInfo? player = null;
+            for (int i=0;i<6; i++)
+            {
+                player = players.FirstOrDefault(x => x.SeatIndex == i);
+                var property = GetType().GetProperty($"Player{i + 1}");
+                property?.SetValue(this, (player is null)?null : 
+                    new PlayerViewModel(player));
+            }
         }
         public void ClearPlayers()
         {

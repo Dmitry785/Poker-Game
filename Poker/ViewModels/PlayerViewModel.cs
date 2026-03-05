@@ -26,6 +26,8 @@ namespace Poker.ViewModels
         }
         public Visibility CurrentMoveVisibility => (currentMove == string.Empty) ? 
             Visibility.Collapsed : Visibility.Visible;
+        public bool IsCurrentPlayer { get; set; } = false;
+        public bool IsDealer { get; set; } = false;
         public PlayerViewModel(PlayerInfo playerInfo)
         {
             info = playerInfo;

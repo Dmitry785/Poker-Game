@@ -3,6 +3,7 @@ using Poker.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,7 +14,6 @@ namespace Poker.ViewModels
     {
         public BordViewModel()
         {
-
         }
         public void ClearCards()
         {
@@ -26,16 +26,11 @@ namespace Poker.ViewModels
         public void UpdateCards(List<PokerCard> cards)
         {
             ClearCards();
-            if (cards.Count > 0)
-                Card1 = new CardViewModel(cards[0]);
-            if (cards.Count > 1)
-                Card2 = new CardViewModel(cards[1]);
-            if (cards.Count > 2)
-                Card3 = new CardViewModel(cards[2]);
-            if (cards.Count > 3)
-                Card4 = new CardViewModel(cards[3]);
-            if (cards.Count > 4)
-                Card5 = new CardViewModel(cards[4]);
+            for(int i=0;i<5 && i < cards.Count; i++)
+            {
+                var property = GetType().GetProperty($"Card{i + 1}");
+                property?.SetValue(this, new CardViewModel(cards[i]));
+            }
         }
         public CardViewModel? Card1
         {

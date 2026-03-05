@@ -53,7 +53,7 @@ namespace Poker.Services
                 State is ConnectionState.Hosting)
                 {
                     players.ChangedPlayerName(clientName, value);
-                    _signalBus.Publish(new PlayerListChanged(players.Players));
+                    OnPlayerListChanged();
                 }
                 clientName = value;
                 //fix если я хост, то сообщить всем имя измен
@@ -209,11 +209,6 @@ namespace Poker.Services
             State = ConnectionState.Hosting;
             players.AddPlayer(new PlayerInfo(ClientName, startMoney, 0));
             gameStage = GameStage.None;
-            cardDeck.ResetDeck();
-            cardDeck.Shuffle();
-            communityCards.AddCard(new PokerCard(PokerCardNumber.Ace, PokerCardSuit.Diamonds));
-            while (communityCards.CanAddCard())
-                communityCards.AddCard(cardDeck.GetCard());
             OnPlayerListChanged();
             OnRoundStageChanged();
         }
@@ -230,16 +225,18 @@ namespace Poker.Services
         private void ApplyGameState(GameState s)
         {
             communityCards.Cards = s.communityCards;
-            currentPlayerIndex = s.currentPlayerIndex;
             RoomName = s.roomName;
             dealerIndex = s.dealerIndex;
             smallBling = s.smallBlind;
             bigBlind = s.bigBlind;
             minBet = s.minBet;
             pot = s.pot;
+            var currentPlayerIndexCorrelated = s.currentPlayerIndex - s.players.Find(x => x.PlayerId == s.playerId)!.SeatIndex;
+            currentPlayerIndex = (currentPlayerIndexCorrelated < 0) 
+                ? maxPlayers + currentPlayerIndexCorrelated : 
+                currentPlayerIndexCorrelated;
+
             players.Players = s.players;
-            MessageBox.Show(string.Join(", ", players.Players.Select(x =>new { x.PlayerId, x.Name })));
-            MessageBox.Show(s.playerId.ToString());
             players.CorrelateById(s.playerId);
             gameStage = s.stage;
             OnPlayerListChanged();
@@ -247,8 +244,6 @@ namespace Poker.Services
         }
         private async Task HandleClientConnecting(IPEndPoint endPoint, ClientConnectData data)
         {
-            if (State is not ConnectionState.Hosting)
-                return;
             var playerInfo = new ConnectedPlayerInfo(data.name, startMoney, endPoint);
             Guid? playerId = players.AddPlayer(playerInfo);
             if (playerId is null)
@@ -260,6 +255,7 @@ namespace Poker.Services
             await _connection.Send(endPoint, new GameState(roomName, dealerIndex,
                 smallBling, bigBlind, minBet, pot, communityCards.Cards,
                 gameStage, currentPlayerIndex, players.Players.ToList(), (Guid)playerId));
+
         }
         #region HandleLocalCommand
         private async Task<bool> HandleLocalCommand_NotConnected(GameCommand command)
@@ -386,7 +382,7 @@ namespace Poker.Services
         }
         private void OnPlayerListChanged()
         {
-            _signalBus.Publish(new PlayerListChanged(players.Players));
+            _signalBus.Publish(new PlayerListChanged(players.Players, currentPlayerIndex, dealerIndex));
         }
     }
     #endregion

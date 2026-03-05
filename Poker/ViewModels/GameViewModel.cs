@@ -111,7 +111,9 @@ namespace Poker.ViewModels
         }
         private void HandlePlayerListChanged(PlayerListChanged message)
         {
-            PokerTableViewModel.UpdatePlayers(message.PlayerList);
+            PokerTableViewModel.UpdatePlayers(message.PlayerList, 
+                message.CurrentPlayerIndex,
+                message.DealerIndex);
         }
         private void HandleRoundStageChanged(RoundStageChanged message)
         {

@@ -35,9 +35,13 @@ namespace Poker.Services
     public class PlayerListChanged : BaseMessage
     {
         public List<PlayerInfo> PlayerList;
-        public PlayerListChanged(List<PlayerInfo> gameData)
+        public int CurrentPlayerIndex;
+        public int DealerIndex;
+        public PlayerListChanged(List<PlayerInfo> gameData, int currentPlayerIdx, int dealerIdx)
         {
             PlayerList = gameData;
+            CurrentPlayerIndex = currentPlayerIdx;
+            DealerIndex = dealerIdx;
         }
     }
    /* public class PlayerStateChanged : BaseMessage
