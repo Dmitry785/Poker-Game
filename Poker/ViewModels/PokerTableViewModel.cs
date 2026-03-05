@@ -13,6 +13,7 @@ namespace Poker.ViewModels
 {
     public class PokerTableViewModel : BaseViewModel
     {
+        public BordViewModel BordViewModel { get; set; }
         public PlayerViewModel? Player1
         {
             get => player1;
@@ -79,6 +80,10 @@ namespace Poker.ViewModels
         public Visibility Player4Visibility => (Player4 is null) ? Visibility.Hidden : Visibility.Visible;
         public Visibility Player5Visibility => (Player5 is null) ? Visibility.Hidden : Visibility.Visible;
         public Visibility Player6Visibility => (Player6 is null) ? Visibility.Hidden : Visibility.Visible;
+        public void UpdateCommunityCards(List<PokerCard> cards)
+        {
+            BordViewModel.UpdateCards(cards);
+        }
         public void UpdatePlayers(List<PlayerInfo> players)
         {
             PlayerInfo? player;
@@ -129,6 +134,7 @@ namespace Poker.ViewModels
         }
         public PokerTableViewModel()
         {
+            BordViewModel = new BordViewModel();
             /*
             Player1 = new PlayerViewModel(new Models.PlayerInfo("Dmitry", 1000, 0));
             Player3 = new PlayerViewModel(new Models.PlayerInfo("Oleg", 2000, 0));

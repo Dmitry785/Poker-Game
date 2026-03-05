@@ -50,7 +50,7 @@
                                Canvas.Right="50" Canvas.Bottom="50"
                         VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
             </Canvas>
-            <local:Bord HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <local:Bord MaxWidth="460" DataContext="{Binding BordViewModel}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
     </ScrollViewer>
 </UserControl>

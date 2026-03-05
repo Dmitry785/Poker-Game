@@ -86,6 +86,7 @@ namespace Poker.ViewModels
             FoldCommand = new Command(OnFold);
             PokerTableViewModel = new PokerTableViewModel();
             sb.Subscribe<PlayerListChanged>(HandlePlayerListChanged);
+            sb.Subscribe<RoundStageChanged>(HandleRoundStageChanged);
             _game = game;
         }
         private async void OnBet()
@@ -111,6 +112,15 @@ namespace Poker.ViewModels
         private void HandlePlayerListChanged(PlayerListChanged message)
         {
             PokerTableViewModel.UpdatePlayers(message.PlayerList);
+        }
+        private void HandleRoundStageChanged(RoundStageChanged message)
+        {
+            /* public GameStage Stage;
+         public CommunityCards Cards;
+         public decimal Pot;
+         public int DealerIndex;*/
+            PokerTableViewModel.UpdateCommunityCards(message.CommunityCards);
+            
         }
         private int currentBet = 200;
         private int maxBet = 500;

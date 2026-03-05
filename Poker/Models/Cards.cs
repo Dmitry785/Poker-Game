@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
+using System.Windows;
 
 namespace Poker.Models
 {
@@ -181,7 +183,7 @@ namespace Poker.Models
         }
         public bool CanAddCard()
         {
-            return cards.Count > 4;
+            return cards.Count < 5;
         }
         public void AddCard(PokerCard card)
         {
@@ -189,5 +191,7 @@ namespace Poker.Models
                 throw new Exception();
             cards.Add(card);
         }
+        
     }
+    
 }

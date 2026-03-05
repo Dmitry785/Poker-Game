@@ -7,6 +7,13 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="250">
     <Grid Background="WhiteSmoke" MinHeight="90" MinWidth="50">
-        <TextBlock Padding="5" Text="7" FontSize="24" Foreground="Red" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <Image Source="{Binding CardImage}" Stretch="Uniform"/>
+        <TextBlock Text="{Binding CardNumber}" VerticalAlignment="Top"/>
+        <TextBlock Text="{Binding CardSuit}" VerticalAlignment="Bottom"/>
+        <!--
+        <TextBlock Margin="10" Padding="5" Text="{Binding CardSuit}" FontSize="16" Foreground="{Binding CardColor}" VerticalAlignment="Top" HorizontalAlignment="Right"/>
+        <TextBlock Padding="5" Text="{Binding CardNumber}" FontSize="20" Foreground="Black" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        <TextBlock Margin="10" Padding="5" Text="{Binding CardSuit}" FontSize="16" Foreground="{Binding CardColor}" VerticalAlignment="Bottom" HorizontalAlignment="Left"/>
+        -->
     </Grid>
 </UserControl>

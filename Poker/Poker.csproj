@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="data\decks\default\cards_sheet.png" />
     <None Remove="data\player.png" />
     <None Remove="data\pokertable.png" />
   </ItemGroup>
@@ -23,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="data\decks\default\cards_sheet.png" />
     <Resource Include="data\player.png" />
     <Resource Include="data\pokertable.png" />
   </ItemGroup>

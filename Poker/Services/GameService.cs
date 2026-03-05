@@ -209,6 +209,11 @@ namespace Poker.Services
             State = ConnectionState.Hosting;
             players.AddPlayer(new PlayerInfo(ClientName, startMoney, 0));
             gameStage = GameStage.None;
+            cardDeck.ResetDeck();
+            cardDeck.Shuffle();
+            communityCards.AddCard(new PokerCard(PokerCardNumber.Ace, PokerCardSuit.Diamonds));
+            while (communityCards.CanAddCard())
+                communityCards.AddCard(cardDeck.GetCard());
             OnPlayerListChanged();
             OnRoundStageChanged();
         }
@@ -218,6 +223,7 @@ namespace Poker.Services
             gameStage = GameStage.None;
             hostEndPoint = null;
             players.Reset();
+            communityCards.Reset();
             OnPlayerListChanged();
             OnRoundStageChanged();
         }
@@ -376,7 +382,7 @@ namespace Poker.Services
         }
         private void OnRoundStageChanged()
         {
-            _signalBus.Publish(new RoundStageChanged(gameStage, communityCards, 0, 0));
+            _signalBus.Publish(new RoundStageChanged(gameStage, communityCards.Cards, 0, 0));
         }
         private void OnPlayerListChanged()
         {

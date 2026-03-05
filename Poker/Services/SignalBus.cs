@@ -40,7 +40,7 @@ namespace Poker.Services
             PlayerList = gameData;
         }
     }
-    public class PlayerStateChanged : BaseMessage
+   /* public class PlayerStateChanged : BaseMessage
     {
         public int SeatIndex;
         public PlayerStatus Status;
@@ -55,17 +55,17 @@ namespace Poker.Services
             Balance = balance;
             Move = move;
         }
-    }
+    }*/
     public class RoundStageChanged : BaseMessage
     {
         public GameStage Stage;
-        public CommunityCards Cards;
+        public List<PokerCard> CommunityCards;
         public decimal Pot;
         public int DealerIndex;
-        public RoundStageChanged(GameStage stage, CommunityCards cards, decimal pot, int dealerIndex)
+        public RoundStageChanged(GameStage stage, List<PokerCard> cards, decimal pot, int dealerIndex)
         {
             Stage = stage;
-            Cards = cards;
+            CommunityCards = cards;
             Pot = pot;
             DealerIndex = dealerIndex;
         }

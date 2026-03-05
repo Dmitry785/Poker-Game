@@ -14,10 +14,10 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <local:Card Grid.Column="0" Margin="1"></local:Card>
-        <local:Card Grid.Column="1" Margin="1"></local:Card>
-        <local:Card Grid.Column="2" Margin="1"></local:Card>
-        <local:Card Grid.Column="3" Margin="1"></local:Card>
-        <local:Card Grid.Column="4" Margin="1"></local:Card>
+        <local:Card Grid.Column="0" Margin="1" DataContext="{Binding Card1}" Visibility="{Binding DataContext.Card1Visibility, RelativeSource={RelativeSource AncestorType=Grid}}"></local:Card>
+        <local:Card Grid.Column="1" Margin="1" DataContext="{Binding Card2}" Visibility="{Binding DataContext.Card2Visibility, RelativeSource={RelativeSource AncestorType=Grid}}"></local:Card>
+        <local:Card Grid.Column="2" Margin="1" DataContext="{Binding Card3}" Visibility="{Binding DataContext.Card3Visibility, RelativeSource={RelativeSource AncestorType=Grid}}"></local:Card>
+        <local:Card Grid.Column="3" Margin="1" DataContext="{Binding Card4}" Visibility="{Binding DataContext.Card4Visibility, RelativeSource={RelativeSource AncestorType=Grid}}"></local:Card>
+        <local:Card Grid.Column="4" Margin="1" DataContext="{Binding Card5}" Visibility="{Binding DataContext.Card5Visibility, RelativeSource={RelativeSource AncestorType=Grid}}"></local:Card>
     </Grid>
 </UserControl>
