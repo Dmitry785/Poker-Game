@@ -15,7 +15,7 @@ namespace Poker.Models
     public class PlayerInfo
     {
         public Guid PlayerId { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
         public decimal Money { get; set; }
         [JsonIgnore]
         public HandCards? Hand { get; set; }
@@ -46,7 +46,7 @@ namespace Poker.Models
     public class ConnectedPlayerInfo : PlayerInfo//нужно для хоста
     {
         [JsonIgnore]
-        public IPEndPoint ClientEndPoint { get; set; }
+        public IPEndPoint ClientEndPoint { get; set; } = null!;
         public ConnectedPlayerInfo()
         {
 
@@ -67,7 +67,7 @@ namespace Poker.Models
         }
         public List<PlayerInfo> Players
         {
-            get => players.ToList();
+            get => players;
             set
             {
                 Reset();

@@ -14,13 +14,19 @@ using System.Windows;
 
 namespace Poker.Connection
 {
-    public partial class TcpConnection : IDisposable
+    public interface IConnection
+    {
+        Task<bool> Send(IPEndPoint clientIP, byte[] message);
+        event Action<IPEndPoint, byte[]>? MessageReceived;
+        object CurrentAddress { get; }
+    }
+    public partial class TcpConnection : IDisposable, IConnection
     {
         private CancellationTokenSource _cts;
         private readonly TcpListener _listener;
         private readonly Dictionary<IPEndPoint, TcpClient> _activeClients = new();
         private ConcurrentDictionary<IPEndPoint, SemaphoreSlim> _sendLocks = new();
-        public event Action<IPEndPoint, DataTransferBase>? MessageReceived;
+        public event Action<IPEndPoint, byte[]>? MessageReceived;
         public ILogger Logger = new NullLogger();
         public IPEndPoint CurrentIP
         {
@@ -39,13 +45,16 @@ namespace Poker.Connection
                 return ((IPEndPoint)_listener.LocalEndpoint).Port;
             }
         }
+
+        public object CurrentAddress => CurrentIP;
+
         public TcpConnection()
         {
             _cts = new CancellationTokenSource();
             _listener = new TcpListener(IPAddress.Any, 0);
             _ = Listen(_cts.Token);
         }
-        public async Task<bool> Send(IPEndPoint clientIP, DataTransferBase message)
+        public async Task<bool> Send(IPEndPoint clientIP, byte[] message)
         {
             Logger.Message($"Send(): Start sending to {clientIP}...");
             var semaphore = _sendLocks.GetOrAdd(clientIP, _ => new SemaphoreSlim(1, 1));
@@ -62,7 +71,7 @@ namespace Poker.Connection
                     _activeClients[clientIP] = client;
                     _ = HandleTcpClient(client, clientIP, _cts.Token);
                 }
-                byte[] data = Serialize(message);
+                byte[] data = message;
                 byte[] lengthPrefix = BitConverter.GetBytes(data.Length);
                 NetworkStream stream = client.GetStream();
                 await stream.WriteAsync(lengthPrefix, 0, 4);
@@ -136,8 +145,7 @@ namespace Poker.Connection
                         int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
                         byte[] messageBuffer = new byte[messageLength];
                         await stream.ReadExactlyAsync(messageBuffer, 0, messageLength, token);
-                        var messageString = Encoding.Unicode.GetString(messageBuffer);
-                        HandleClientMessage(endPoint, messageString);
+                        HandleClientMessage(endPoint, messageBuffer);
                     }
                 }
             }
@@ -153,24 +161,16 @@ namespace Poker.Connection
                 _sendLocks.TryRemove(endPoint, out _);
             }
         }
-        private void HandleClientMessage(IPEndPoint endPoint, string messageString)
+        private void HandleClientMessage(IPEndPoint endPoint, byte[] message)
         {
             try
             {
-                Logger.Message($"htmess: handle message {endPoint}: {messageString}");
-                if (!(JsonSerializer.Deserialize<DataTransferBase>(messageString) is DataTransferBase message))
-                    return;
-                Logger.Message($"htmess: handle message succesful {endPoint}: {message.ToString()}");
                 MessageReceived?.Invoke(endPoint, message);
             }
             catch(Exception ex)
             {
                 Logger.Message($"htmess: handle message {endPoint} failed err: {ex.Message}");
             }
-        }
-        private byte[] Serialize(DataTransferBase dto)
-        {
-            return Encoding.Unicode.GetBytes(JsonSerializer.Serialize(dto));
         }
         public void Dispose()
         {

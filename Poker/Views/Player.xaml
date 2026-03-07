@@ -7,6 +7,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="120" d:DesignWidth="80">
     <UserControl.Resources>
+        <local:BoolToVisibility x:Key="boolToVisibility"/>
+        <local:PlayerStatuslToColorConverter x:Key="statusToColor"/>
         <local:MoneyPresentConverter x:Key="MoneyConverter"/>
     </UserControl.Resources>
     <Grid>
@@ -21,18 +23,36 @@
             </Grid.Background>
             -->
             <Border Grid.Row="0"
-                Width="60" 
-                Height="60" 
-                CornerRadius="30"
-                ClipToBounds="True"
-                Margin="5"
-                    Background="Gray">
+                            Width="60" 
+                            Height="60" 
+                            CornerRadius="30"
+                            ClipToBounds="True"
+                            Margin="5"
+                            Background="{Binding Status, Converter={StaticResource statusToColor}}">
                 <Image Source="/data/player.png" 
-                   Stretch="Uniform">
+                                Stretch="Uniform">
                     <Image.Clip>
                         <EllipseGeometry Center="30, 30"
-                                     RadiusX="30"
-                                     RadiusY="30"/>
+                         RadiusX="28"
+                         RadiusY="28"/>
+                    </Image.Clip>
+                </Image>
+            </Border>
+            <Border Grid.Row="0"
+                            Width="20" 
+                            Height="20" 
+                            CornerRadius="10"
+                            ClipToBounds="True"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="5"
+                            Visibility="{Binding IsDealer, Converter={StaticResource boolToVisibility}}">
+                <Image Source="/data/dealer.png" 
+                    Stretch="Uniform">
+                    <Image.Clip>
+                        <EllipseGeometry Center="10, 10"
+                         RadiusX="10"
+                         RadiusY="10"/>
                     </Image.Clip>
                 </Image>
             </Border>

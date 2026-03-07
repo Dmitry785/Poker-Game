@@ -38,7 +38,8 @@ namespace Poker.ViewModels
             var sb = new SignalBus();
             var gameConfig = new GameConfig(1000, -1, -1, 10, 20, 6);
             var connection = new TcpConnection();
-            var gs = new GameService(sb, gameConfig, connection);
+            var connectionManager = new ConnectionManager(connection);
+            var gs = new GameService(sb, gameConfig, connectionManager);
 
 
             var gvm = new GameViewModel(gs, sb);

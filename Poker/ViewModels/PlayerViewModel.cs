@@ -28,9 +28,11 @@ namespace Poker.ViewModels
             Visibility.Collapsed : Visibility.Visible;
         public bool IsCurrentPlayer { get; set; } = false;
         public bool IsDealer { get; set; } = false;
+        public PlayerStatus Status { get; private set; }
         public PlayerViewModel(PlayerInfo playerInfo)
         {
             info = playerInfo;
+            Status = playerInfo.Status;
         }
     }
 }

@@ -30,13 +30,13 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Command="{Binding BetCommand}" IsEnabled="{Binding CanBet}">Bet</Button>
-                <Button Grid.Column="1" Command="{Binding FoldCommand}" IsEnabled="{Binding CanFold}">Fold</Button>
-                <Button Grid.Column="2" Command="{Binding CheckCommand}" IsEnabled="{Binding CanCheck}">Check</Button>
-                <Button Grid.Column="3" Command="{Binding RaiseCommand}" IsEnabled="{Binding CanRaise}">Raise</Button>
-                <Button Grid.Column="4" Command="{Binding CallCommand}" IsEnabled="{Binding CanCall}">Call</Button>
-                <Slider Grid.Column="5" Maximum="{Binding MaxBet}" Value="{Binding CurrentBet, Mode=TwoWay}"/>
-                <TextBlock Grid.Column="6" Text="{Binding CurrentBet}"/>
+                <Button Grid.Column="0" Command="{Binding FoldCommand}" IsEnabled="{Binding CanFold}">Fold</Button>
+                <Button Grid.Column="1" Command="{Binding CheckCommand}" IsEnabled="{Binding CanCheck}">Check</Button>
+                <Button Grid.Column="2" Command="{Binding RaiseCommand}" IsEnabled="{Binding CanBetRaise}">Raise</Button>
+                <Button Grid.Column="3" Command="{Binding CallCommand}" IsEnabled="{Binding CanCall}">Call</Button>
+                <Slider Grid.Column="4" Minimum="{Binding MinBetRaise}" Maximum="{Binding MaxBetRaise}" Value="{Binding CurrentBet, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock Grid.Column="5" Text="{Binding CurrentBet}" Background="White" TextAlignment="Center" FontSize="20"/>
+                <Button Grid.Column="6" Command="{Binding StartGameCommand}" IsEnabled="{Binding CanStartGame}">Start game</Button>
             </Grid>
         </Grid>
     </Grid>

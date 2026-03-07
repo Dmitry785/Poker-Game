@@ -13,17 +13,13 @@ namespace Poker.ViewModels
     public class GameViewModel : BaseViewModel
     {
         private GameService _game;
-        public PokerTableViewModel PokerTableViewModel { get;}
-        public int MaxBet
-        {
-            get => maxBet;
-            set
-            {
-                maxBet = value;
-                OnPropertyChanged();
-            }
-        }
-        public int CurrentBet
+        public PokerTableViewModel PokerTableViewModel { get; }
+        public ICommand CallCommand { get; }
+        public ICommand CheckCommand { get; }
+        public ICommand BetRaiseCommand { get; }
+        public ICommand FoldCommand { get; }
+        public ICommand StartGameCommand { get; }
+        public decimal CurrentBet
         {
             get => currentBet;
             set
@@ -32,66 +28,75 @@ namespace Poker.ViewModels
                 OnPropertyChanged();
             }
         }
-        public ICommand BetCommand { get; }
-        public ICommand CallCommand { get; }
-        public ICommand CheckCommand { get; }
-        public ICommand RaiseCommand { get; }
-        public ICommand FoldCommand { get; }
-        public bool CanBet
-        {
-            get => canBet;
-            set {
-                canBet = value;
-                OnPropertyChanged();
+        public decimal MaxBetRaise=> _game.LocalPlayer?.Money ?? 0;
+        public decimal MinBetRaise => _game.MinBetRaise;
+        public bool IsMyTurn => _game.CurrentPlayerIndex == 0 && IsGameStarted;
+        public bool IsGameStarted => _game.CurrentGameStage != GameStage.None;
+        public decimal AmountToCall {
+            get
+            {
+                var localPlayer = _game.LocalPlayer;
+                if (localPlayer is null)
+                    return 0;
+                return _game.CurrentMaxBet - localPlayer.CurrentBet;
             }
         }
+        public bool CanStartGame =>
+            _game.State is Connection.ConnectionState.Hosting &&
+            !IsGameStarted &&
+            _game.Players.Count > 1;
+        public bool CanFold => IsMyTurn;
+        public bool CanCheck => IsGameStarted && AmountToCall == 0;
         public bool CanCall
         {
-            get => canCall;
-            set {
-                canCall = value;
-                OnPropertyChanged();
+            get
+            {
+                var localPlayer = _game.LocalPlayer;
+                if (localPlayer is null)
+                    return false;
+                return IsMyTurn && AmountToCall > 0 && localPlayer.Money > AmountToCall;
             }
         }
-        public bool CanCheck
+        public bool CanBetRaise
         {
-            get => canCheck;
-            set {
-                canCheck = value;
-                OnPropertyChanged();
+            get
+            {
+                var localPlayer = _game.LocalPlayer;
+                if (localPlayer is null)
+                    return false;
+                return IsMyTurn && localPlayer.Money > AmountToCall;
             }
         }
-        public bool CanRaise
+        public bool CanAllIn
         {
-            get => canRaise;
-            set {
-                canRaise = value;
-                OnPropertyChanged();
+            get
+            {
+                var localPlayer = _game.LocalPlayer;
+                if (localPlayer is null)
+                    return false;
+                return IsMyTurn && localPlayer.Money > 0;
             }
         }
-        public bool CanFold
-        {
-            get => canFold;
-            set {
-                canFold = value;
-                OnPropertyChanged();
-            }
-        }
+        public decimal Pot => _game.Pot;
         public GameViewModel(GameService game, SignalBus sb)
         {
-            BetCommand = new Command(OnBet);
+            BetRaiseCommand = new Command(OnBetRaise);
             CallCommand = new Command(OnCall);
             CheckCommand = new Command(OnCheck);
-            RaiseCommand = new Command(OnRaise);
             FoldCommand = new Command(OnFold);
+            StartGameCommand = new Command(OnStartGame);
             PokerTableViewModel = new PokerTableViewModel();
             sb.Subscribe<PlayerListChanged>(HandlePlayerListChanged);
             sb.Subscribe<RoundStageChanged>(HandleRoundStageChanged);
             _game = game;
         }
-        private async void OnBet()
+        private async void OnStartGame()
         {
-            await _game.HandleLocalCommand(new BetCommand(CurrentBet));
+            await _game.HandleLocalCommand(new StartGameCommand());
+        }
+        private async void OnBetRaise()
+        {
+            await _game.HandleLocalCommand(new BetRaiseCommand(CurrentBet));
         }
         private async void OnCall()
         {
@@ -101,35 +106,38 @@ namespace Poker.ViewModels
         {
             await _game.HandleLocalCommand(new CheckCommand());
         }
-        private async void OnRaise()
-        {
-            await _game.HandleLocalCommand(new RaiseCommand(CurrentBet));
-        }
         private async void OnFold()
         {
             await _game.HandleLocalCommand(new FoldCommand());
         }
+        private void OnGameChanged()
+        {
+            OnPropertyChanged(nameof(IsMyTurn));
+            OnPropertyChanged(nameof(CanStartGame));
+            OnPropertyChanged(nameof(CanFold));
+            OnPropertyChanged(nameof(CanCheck));
+            OnPropertyChanged(nameof(CanCall));
+            OnPropertyChanged(nameof(CanBetRaise));
+            OnPropertyChanged(nameof(CanAllIn));
+            OnPropertyChanged(nameof(Pot));
+            OnPropertyChanged(nameof(MaxBetRaise));
+            OnPropertyChanged(nameof(MinBetRaise));
+        }
         private void HandlePlayerListChanged(PlayerListChanged message)
         {
-            PokerTableViewModel.UpdatePlayers(message.PlayerList, 
-                message.CurrentPlayerIndex,
-                message.DealerIndex);
+            PokerTableViewModel.UpdatePlayers(_game.Players, 
+                _game.CurrentPlayerIndex,
+                _game.DealerIndex);
+            OnGameChanged();
         }
         private void HandleRoundStageChanged(RoundStageChanged message)
         {
-            /* public GameStage Stage;
-         public CommunityCards Cards;
-         public decimal Pot;
-         public int DealerIndex;*/
-            PokerTableViewModel.UpdateCommunityCards(message.CommunityCards);
-            
+            PokerTableViewModel.UpdateCommunityCards(_game.CommunityCards);
+            PokerTableViewModel.UpdatePlayers(_game.Players, _game.CurrentPlayerIndex, _game.DealerIndex);
+            PokerTableViewModel.Pot = _game.Pot;
+
+            OnGameChanged();
         }
-        private int currentBet = 200;
-        private int maxBet = 500;
-        private bool canBet = true;
-        private bool canCall = true;
-        private bool canCheck = true;
-        private bool canRaise = true;
-        private bool canFold = true;
+        private decimal currentBet = 0;
     }
 }

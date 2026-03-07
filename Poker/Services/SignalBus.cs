@@ -34,17 +34,11 @@ namespace Poker.Services
     public abstract class BaseMessage;
     public class PlayerListChanged : BaseMessage
     {
-        public List<PlayerInfo> PlayerList;
-        public int CurrentPlayerIndex;
-        public int DealerIndex;
-        public PlayerListChanged(List<PlayerInfo> gameData, int currentPlayerIdx, int dealerIdx)
+        public PlayerListChanged()
         {
-            PlayerList = gameData;
-            CurrentPlayerIndex = currentPlayerIdx;
-            DealerIndex = dealerIdx;
         }
     }
-   /* public class PlayerStateChanged : BaseMessage
+    /*public class PlayerStateChanged : BaseMessage
     {
         public int SeatIndex;
         public PlayerStatus Status;
@@ -62,26 +56,18 @@ namespace Poker.Services
     }*/
     public class RoundStageChanged : BaseMessage
     {
-        public GameStage Stage;
-        public List<PokerCard> CommunityCards;
-        public decimal Pot;
-        public int DealerIndex;
-        public RoundStageChanged(GameStage stage, List<PokerCard> cards, decimal pot, int dealerIndex)
+        public RoundStageChanged()
         {
-            Stage = stage;
-            CommunityCards = cards;
-            Pot = pot;
-            DealerIndex = dealerIndex;
         }
     }
-    public class CardsReceived : BaseMessage
+    /*public class CardsReceived : BaseMessage
     {
         public HandCards Cards;
         public CardsReceived(HandCards cards)
         {
             Cards = cards;
         }
-    }
+    }*/
     public class GameResultsOccurred : BaseMessage
     {
         public Dictionary<int, HandCards> Cards;

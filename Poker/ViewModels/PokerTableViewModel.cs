@@ -80,6 +80,15 @@ namespace Poker.ViewModels
         public Visibility Player4Visibility => (Player4 is null) ? Visibility.Hidden : Visibility.Visible;
         public Visibility Player5Visibility => (Player5 is null) ? Visibility.Hidden : Visibility.Visible;
         public Visibility Player6Visibility => (Player6 is null) ? Visibility.Hidden : Visibility.Visible;
+        public decimal Pot
+        {
+            get => pot;
+            set
+            {
+                pot = value;
+                OnPropertyChanged();
+            }
+        }
         public void UpdateCommunityCards(List<PokerCard> cards)
         {
             BordViewModel.UpdateCards(cards);
@@ -94,7 +103,11 @@ namespace Poker.ViewModels
                 player = players.FirstOrDefault(x => x.SeatIndex == i);
                 var property = GetType().GetProperty($"Player{i + 1}");
                 property?.SetValue(this, (player is null)?null : 
-                    new PlayerViewModel(player));
+                    new PlayerViewModel(player)
+                    {
+                        IsCurrentPlayer = player.SeatIndex == currentPlayerIndex,
+                        IsDealer = player.SeatIndex == dealerIndex
+                    });
             }
         }
         public void ClearPlayers()
@@ -116,6 +129,7 @@ namespace Poker.ViewModels
             Player4 = new PlayerViewModel(new Models.PlayerInfo("Vlad", 1500, 0));
             */
         }
+        private decimal pot;
         private PlayerViewModel? player1;
         private PlayerViewModel? player2;
         private PlayerViewModel? player3;

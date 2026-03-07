@@ -15,8 +15,11 @@ namespace Poker.Connection
     [JsonDerivedType(typeof(ClientDisconnectData), typeDiscriminator: "clientDisconnectData")]
     [JsonDerivedType(typeof(ClientMove), typeDiscriminator: "clientMove")]
     [JsonDerivedType(typeof(GameUpdated), typeDiscriminator: "gameUpdated")]
-    [JsonDerivedType(typeof(GameState), typeDiscriminator: "gameState")]
+    [JsonDerivedType(typeof(GameStateAll), typeDiscriminator: "gameStateAll")]
+    [JsonDerivedType(typeof(GameStateUpdated), typeDiscriminator: "gameStateUpdated")]
     [JsonDerivedType(typeof(ConnectionDeclined), typeDiscriminator: "connectionDeclined")]
+    [JsonDerivedType(typeof(ClientConnected), typeDiscriminator: "clientConnected")]
+    [JsonDerivedType(typeof(DealCardsData), typeDiscriminator: "dealCardsData")]
     public abstract record DataTransferBase { }
 
     public record ClientConnectData(string name) : DataTransferBase;
@@ -30,7 +33,7 @@ namespace Poker.Connection
         Check,
         Raise
     }
-    public record GameUpdated(Guid playeId, GameUpdatedType updateType, int SequenceNumber, int? amount = null) : DataTransferBase;
+    public record GameUpdated(Guid playeId, GameUpdatedType updateType, int? amount = null) : DataTransferBase;
     public enum GameUpdatedType
     {
         Call,
@@ -38,13 +41,16 @@ namespace Poker.Connection
         Fold,
         Check,
         Raise,
-        Disconnected,
-        Connected
+        Disconnected
     }
-    public record GameState(string roomName, int dealerIndex,
-        decimal smallBlind, decimal bigBlind, decimal minBet,
+    public record ClientConnected(PlayerInfo player) : DataTransferBase;
+    public record GameStateAll(string roomName, int dealerIndex,
+        decimal smallBlind, decimal bigBlind, decimal currentMaxBet, decimal lastRaiseStep,
         decimal pot, List<PokerCard> communityCards, GameStage stage,
         int currentPlayerIndex, List<PlayerInfo> players, Guid playerId) : DataTransferBase;
-    public record DealCardsData(List<PokerCard> hand);//нужно зашифровать
+    public record GameStateUpdated(int dealerIndex, decimal currentMaxBet, decimal lastRaiseStep,
+        decimal pot, List<PokerCard> communityCards, GameStage stage,
+        int currentPlayerIndex) : DataTransferBase;
+    public record DealCardsData(List<PokerCard> hand) : DataTransferBase;//нужно зашифровать
     public record ConnectionDeclined(string reason) : DataTransferBase;
 }
