@@ -1,9 +1,11 @@
 ﻿using Poker.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Poker.Connection;
 
 namespace Poker.Services
 {
@@ -31,56 +33,17 @@ namespace Poker.Services
         }
     }
     #region SignalBusMessages
-    public abstract class BaseMessage;
-    public class PlayerListChanged : BaseMessage
-    {
-        public PlayerListChanged()
-        {
-        }
-    }
-    /*public class PlayerStateChanged : BaseMessage
-    {
-        public int SeatIndex;
-        public PlayerStatus Status;
-        public decimal CurrentBet;
-        public decimal Balance;
-        public string Move;
-        public PlayerStateChanged(int seatIndex, PlayerStatus status, decimal currentBet, decimal balance, string move)
-        {
-            SeatIndex = seatIndex;
-            Status = status;
-            CurrentBet = currentBet;
-            Balance = balance;
-            Move = move;
-        }
-    }*/
-    public class RoundStageChanged : BaseMessage
-    {
-        public RoundStageChanged()
-        {
-        }
-    }
-    /*public class CardsReceived : BaseMessage
-    {
-        public HandCards Cards;
-        public CardsReceived(HandCards cards)
-        {
-            Cards = cards;
-        }
-    }*/
-    public class GameResultsOccurred : BaseMessage
-    {
-        public Dictionary<int, HandCards> Cards;
-        public List<int> Winners;
-        public decimal WinAmount;
-        public GameResultsOccurred(Dictionary<int, HandCards> cards, List<int> winners, decimal winAmount)
-        {
-            Cards = cards;
-            Winners = winners;
-            WinAmount = winAmount;
-        }
-    }
-    public class StateChangedMessage : BaseMessage{ }
-    public class RoomNameChanged : BaseMessage { }
+    public abstract record BaseMessage;
+    public record PlayerUpdatedMessage(PlayerInfo player, string currentMove = "") : BaseMessage; 
+    public record PlayerLeftMessage(Guid pId) : BaseMessage;
+    public record PlayersUpdatedMessage(List<PlayerInfo> players) : BaseMessage;
+    public record PrivateCardDealtMessage(List<PokerCard> hand) : BaseMessage;
+    public record TableStateChangedMessage(int dealerSeatIndex,
+        List<PokerCard> communityCards,
+        GameStage stage) : BaseMessage;
+    public record PlayerTurnMessage(int currentPlayerIndex, int pot) : BaseMessage;
+    public record GameResultsOccurred(Dictionary<Guid, HandCards> cards, 
+        List<WinnerInfo> winners) : BaseMessage;
+    public record StateChangedMessage() : BaseMessage{ }
     #endregion
 }

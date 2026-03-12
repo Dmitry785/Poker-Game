@@ -54,7 +54,7 @@ namespace Poker.Connection
             _listener = new TcpListener(IPAddress.Any, 0);
             _ = Listen(_cts.Token);
         }
-        public async Task<bool> Send(IPEndPoint clientIP, byte[] message)
+        public async Task<bool> Send(IPEndPoint clientIP, byte[] data)
         {
             Logger.Message($"Send(): Start sending to {clientIP}...");
             var semaphore = _sendLocks.GetOrAdd(clientIP, _ => new SemaphoreSlim(1, 1));
@@ -71,7 +71,6 @@ namespace Poker.Connection
                     _activeClients[clientIP] = client;
                     _ = HandleTcpClient(client, clientIP, _cts.Token);
                 }
-                byte[] data = message;
                 byte[] lengthPrefix = BitConverter.GetBytes(data.Length);
                 NetworkStream stream = client.GetStream();
                 await stream.WriteAsync(lengthPrefix, 0, 4);

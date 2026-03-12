@@ -13,63 +13,64 @@ namespace Poker.ViewModels
 {
     public class PokerTableViewModel : BaseViewModel
     {
+        private readonly PlayerViewModel?[] _playerFields = new PlayerViewModel[6];
         public BordViewModel BordViewModel { get; set; }
         public PlayerViewModel? Player1
         {
-            get => player1;
+            get => _playerFields[0];
             set
             {
-                player1 = value;
+                _playerFields[0] = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(Player1Visibility));
             }
         }
         public PlayerViewModel? Player2
         {
-            get => player2;
+            get => _playerFields[1];
             set
             {
-                player2 = value;
+                _playerFields[1] = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(Player2Visibility));
             }
         }
         public PlayerViewModel? Player3
         {
-            get => player3;
+            get => _playerFields[2];
             set
             {
-                player3 = value;
+                _playerFields[2] = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(Player3Visibility));
             }
         }
         public PlayerViewModel? Player4
         {
-            get => player4;
+            get => _playerFields[3];
             set
             {
-                player4 = value;
+                _playerFields[3] = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(Player4Visibility));
             }
         }
         public PlayerViewModel? Player5
         {
-            get => player5;
+            get => _playerFields[4];
             set
             {
-                player5 = value;
+                _playerFields[4] = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(Player5Visibility));
             }
         }
         public PlayerViewModel? Player6
         {
-            get => player6;
+            get => _playerFields[5];
             set
             {
-                player6 = value;
+                _playerFields[5] = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(Player6Visibility));
             }
@@ -110,6 +111,13 @@ namespace Poker.ViewModels
                     });
             }
         }
+        public void UpsertPlayer(PlayerInfo p, string currentMove)
+        {
+        }
+        public void RemovePlayer(Guid playerId)
+        {
+
+        }
         public void ClearPlayers()
         {
             Player1 = null;
@@ -122,19 +130,7 @@ namespace Poker.ViewModels
         public PokerTableViewModel()
         {
             BordViewModel = new BordViewModel();
-            /*
-            Player1 = new PlayerViewModel(new Models.PlayerInfo("Dmitry", 1000, 0));
-            Player3 = new PlayerViewModel(new Models.PlayerInfo("Oleg", 2000, 0));
-            Player3.CurrentMove = "Fold";
-            Player4 = new PlayerViewModel(new Models.PlayerInfo("Vlad", 1500, 0));
-            */
         }
         private decimal pot;
-        private PlayerViewModel? player1;
-        private PlayerViewModel? player2;
-        private PlayerViewModel? player3;
-        private PlayerViewModel? player4;
-        private PlayerViewModel? player5;
-        private PlayerViewModel? player6;
     }
 }

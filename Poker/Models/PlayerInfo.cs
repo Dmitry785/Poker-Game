@@ -31,6 +31,12 @@ namespace Poker.Models
             Name = name;
             Money = money;
         }
+        public void SetHand(List<PokerCard> cards)
+        {
+            if (cards.Count < 2)
+                return;
+            Hand = new HandCards(cards[0], cards[1]);
+        }
         public void SetHand(PokerCard card1, PokerCard card2)
         {
             Hand = new HandCards(card1, card2);
@@ -42,20 +48,6 @@ namespace Poker.Models
         AllIn,
         Folded,
         Out
-    }
-    public class ConnectedPlayerInfo : PlayerInfo//нужно для хоста
-    {
-        [JsonIgnore]
-        public IPEndPoint ClientEndPoint { get; set; } = null!;
-        public ConnectedPlayerInfo()
-        {
-
-        }
-        public ConnectedPlayerInfo(string name, decimal money, IPEndPoint client, int seatIndex = 0) 
-            :base(name, money, seatIndex)
-        {
-            ClientEndPoint = client;
-        }
     }
     public class PlayerListManager
     {
@@ -82,6 +74,18 @@ namespace Poker.Models
         public bool CanAddPlayer(PlayerInfo player)
         {
             return players.Count <= MaxPlayers;
+        }
+        public void RemovePlayer(Guid playerId)
+        {
+            players.RemoveAll(x => x.PlayerId == playerId);
+        }
+        public PlayerInfo? GetBySeatIndex(int seatIndex)
+        {
+            return players.FirstOrDefault(x => x.SeatIndex == seatIndex);
+        }
+        public PlayerInfo? GetById(Guid playerId)
+        {
+            return players.FirstOrDefault(x => x.PlayerId == playerId);
         }
         public Guid? AddPlayer(PlayerInfo player)
         {
@@ -129,19 +133,21 @@ namespace Poker.Models
         {
             players.Clear();
         }
-        public void CorrelateById(Guid playerId)
+        public List<PlayerInfo> GetCorrelated(Guid playerId)
         {
             var player = players.Find(x => x.PlayerId == playerId);
             if (player is null)
                 throw new Exception();
             int seatIndex = player.SeatIndex;
-            for(int i = 0; i < players.Count; i++)
+            var res = players.ToList();
+            for(int i = 0; i < res.Count; i++)
             {
-                var idx = players[i].SeatIndex - seatIndex;
+                var idx = res[i].SeatIndex - seatIndex;
                 if (idx < 0)
                     idx = MaxPlayers + idx;
-                players[i].SeatIndex = idx;
+                res[i].SeatIndex = idx;
             }
+            return res;
         }
         public void ChangedPlayerName(string playerName, string newName)
         {
@@ -150,5 +156,17 @@ namespace Poker.Models
                 player.Name = newName;
         }
         private readonly int _selectNameIdAttempts = 10;
+    }
+    public class WinnerInfo
+    {
+        public Guid PlayerId { get; set; }
+        public decimal Amount { get; set; }
+        public string HandTitle { get; set; }
+        public WinnerInfo(Guid playerId, decimal amount, string handTitle)
+        {
+            PlayerId = playerId;
+            Amount = amount;
+            HandTitle = handTitle;
+        }
     }
 }

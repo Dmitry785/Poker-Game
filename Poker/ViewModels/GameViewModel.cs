@@ -46,7 +46,7 @@ namespace Poker.ViewModels
             !IsGameStarted &&
             _game.Players.Count > 1;
         public bool CanFold => IsMyTurn;
-        public bool CanCheck => IsGameStarted && AmountToCall == 0;
+        public bool CanCheck => IsGameStarted && AmountToCall == 0 && IsMyTurn;
         public bool CanCall
         {
             get
@@ -86,8 +86,9 @@ namespace Poker.ViewModels
             FoldCommand = new Command(OnFold);
             StartGameCommand = new Command(OnStartGame);
             PokerTableViewModel = new PokerTableViewModel();
-            sb.Subscribe<PlayerListChanged>(HandlePlayerListChanged);
-            sb.Subscribe<RoundStageChanged>(HandleRoundStageChanged);
+            sb.Subscribe<PlayerUpdatedMessage>(HandlePlayerUpdatedMessage);
+            sb.Subscribe<TableStateChangedMessage>(HandleTableStateChangedMessage);
+            sb.Subscribe<PlayerLeftMessage>(HandlePlayerLeftMessage);
             _game = game;
         }
         private async void OnStartGame()
@@ -123,19 +124,18 @@ namespace Poker.ViewModels
             OnPropertyChanged(nameof(MaxBetRaise));
             OnPropertyChanged(nameof(MinBetRaise));
         }
-        private void HandlePlayerListChanged(PlayerListChanged message)
+        private void HandlePlayerLeftMessage(PlayerLeftMessage message)
         {
-            PokerTableViewModel.UpdatePlayers(_game.Players, 
-                _game.CurrentPlayerIndex,
-                _game.DealerIndex);
+
+        }
+        private void HandlePlayerUpdatedMessage(PlayerUpdatedMessage message)
+        {
+            PokerTableViewModel.UpsertPlayer(message.player, message.currentMove);
             OnGameChanged();
         }
-        private void HandleRoundStageChanged(RoundStageChanged message)
+        private void HandleTableStateChangedMessage(TableStateChangedMessage message)
         {
-            PokerTableViewModel.UpdateCommunityCards(_game.CommunityCards);
-            PokerTableViewModel.UpdatePlayers(_game.Players, _game.CurrentPlayerIndex, _game.DealerIndex);
-            PokerTableViewModel.Pot = _game.Pot;
-
+            PokerTableViewModel.UpdateCommunityCards(message.communityCards);
             OnGameChanged();
         }
         private decimal currentBet = 0;

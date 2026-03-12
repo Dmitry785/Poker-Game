@@ -5,6 +5,7 @@ using Poker.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -20,6 +21,8 @@ namespace Poker.Connection
     [JsonDerivedType(typeof(ConnectionDeclined), typeDiscriminator: "connectionDeclined")]
     [JsonDerivedType(typeof(ClientConnected), typeDiscriminator: "clientConnected")]
     [JsonDerivedType(typeof(DealCardsData), typeDiscriminator: "dealCardsData")]
+    [JsonDerivedType(typeof(InviteData), typeDiscriminator: "inviteData")]
+    [JsonDerivedType(typeof(GameHostingClosed), typeDiscriminator: "gameHostingClosed")]
     public abstract record DataTransferBase { }
 
     public record ClientConnectData(string name) : DataTransferBase;
@@ -33,6 +36,7 @@ namespace Poker.Connection
         Check,
         Raise
     }
+    public record GameHostingClosed(string reason) : DataTransferBase;
     public record GameUpdated(Guid playeId, GameUpdatedType updateType, int? amount = null) : DataTransferBase;
     public enum GameUpdatedType
     {
@@ -44,6 +48,7 @@ namespace Poker.Connection
         Disconnected
     }
     public record ClientConnected(PlayerInfo player) : DataTransferBase;
+    public record InviteData(IPEndPoint hostEndPoint) : DataTransferBase;
     public record GameStateAll(string roomName, int dealerIndex,
         decimal smallBlind, decimal bigBlind, decimal currentMaxBet, decimal lastRaiseStep,
         decimal pot, List<PokerCard> communityCards, GameStage stage,

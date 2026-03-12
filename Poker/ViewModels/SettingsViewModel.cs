@@ -43,10 +43,10 @@ namespace Poker.ViewModels
             StartHostCommand = new Command(OnStartHost);
             DisconnectCommand = new Command(OnDisconnect);
             sb.Subscribe<StateChangedMessage>(HandleStatusChanged);
-            NetworkChange.NetworkAddressChanged += (s, e) =>
+            /*NetworkChange.NetworkAddressChanged += (s, e) =>
             {
                 OnPropertyChanged(nameof(CurrentIP));
-            };
+            };*/
         }
         private async void OnStartHost()
         {
@@ -69,6 +69,6 @@ namespace Poker.ViewModels
             OnPropertyChanged(nameof(CanHost));
             OnPropertyChanged(nameof(CanDisconnect));
         }
-        private string hostIP = "127.0.0.1:7777";
+        private string hostIP = "localhost:7777";
     }
 }

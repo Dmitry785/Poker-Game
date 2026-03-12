@@ -10,10 +10,10 @@ namespace Poker.ViewModels
 {
     public class PlayerViewModel : BaseViewModel
     {
-        private PlayerInfo info;
+        public PlayerInfo PlayerInfo;
         private string currentMove = string.Empty;
-        public string Name => info.Name;
-        public decimal Money => info.Money;
+        public string Name => PlayerInfo.Name;
+        public decimal Money => PlayerInfo.Money;
         public string CurrentMove
         {
             get => currentMove;
@@ -31,7 +31,7 @@ namespace Poker.ViewModels
         public PlayerStatus Status { get; private set; }
         public PlayerViewModel(PlayerInfo playerInfo)
         {
-            info = playerInfo;
+            PlayerInfo = playerInfo;
             Status = playerInfo.Status;
         }
     }
