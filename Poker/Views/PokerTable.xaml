@@ -37,18 +37,24 @@
                 <local:Player DataContext="{Binding Player2}" Visibility="{Binding DataContext.Player2Visibility, RelativeSource={RelativeSource AncestorType=Canvas}}"
                               Canvas.Left="50" Canvas.Bottom="50"
                         VerticalAlignment="Bottom" HorizontalAlignment="Left"/>
-                <local:Player DataContext="{Binding Player1}" Visibility="{Binding DataContext.Player1Visibility, RelativeSource={RelativeSource AncestorType=Canvas}}"
-                               Canvas.Left="{Binding RelativeSource={RelativeSource AncestorType=Canvas}, 
-                Path=ActualWidth, Converter={StaticResource HalfConverter}}" Canvas.Bottom="50"
-                        VerticalAlignment="Bottom" HorizontalAlignment="Center">
-                    <local:Player.RenderTransform>
-                        <TranslateTransform X="-25" Y="25"/>
-                        <!-- Половина ширины и высоты кнопки -->
-                    </local:Player.RenderTransform>
-                </local:Player>
                 <local:Player DataContext="{Binding Player6}" Visibility="{Binding DataContext.Player6Visibility, RelativeSource={RelativeSource AncestorType=Canvas}}"
                                Canvas.Right="50" Canvas.Bottom="50"
                         VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+                <local:Player DataContext="{Binding Player1}" Visibility="{Binding DataContext.Player1Visibility, RelativeSource={RelativeSource AncestorType=Canvas}}"
+                               Canvas.Left="{Binding RelativeSource={RelativeSource AncestorType=Canvas}, 
+                            Path=ActualWidth, Converter={StaticResource HalfConverter}}" Canvas.Bottom="50"
+                        VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                    <local:Player.RenderTransform>
+                        <TranslateTransform X="-25" Y="25"/>
+                    </local:Player.RenderTransform>
+                </local:Player>
+                <local:Hand MaxWidth="150" DataContext="{Binding HandViewModel}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Canvas.Left="{Binding RelativeSource={RelativeSource AncestorType=Canvas}, 
+                                    Path=ActualWidth, Converter={StaticResource HalfConverter}}" Canvas.Bottom="0">
+                    <local:Hand.RenderTransform>
+                        <TranslateTransform X="75" Y="-25"/>
+                    </local:Hand.RenderTransform>
+                </local:Hand>
             </Canvas>
             <local:Bord MaxWidth="460" DataContext="{Binding BordViewModel}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>

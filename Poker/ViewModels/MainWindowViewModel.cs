@@ -39,14 +39,27 @@ namespace Poker.ViewModels
             var gameConfig = new GameConfig(1000, -1, -1, 10, 20, 6);
             var connection = new TcpConnection();
             var connectionManager = new ConnectionManager(connection);
+
             var gs = new GameService(sb, gameConfig, connectionManager);
-
-
             var gvm = new GameViewModel(gs, sb);
             var givm = new GameInfoViewModel(gs, sb);
             var svm = new SettingsViewModel(gs, sb);
-            connection.Logger = new ListBoxLogger(svm.SettingsLog);
-            gs.Logger = new ListBoxLogger(svm.SettingsLog);
+
+            var connectionLogger = new HubbedLogger();
+            var gsLogger = new HubbedLogger();
+            var gsGameLogger = new ListBoxLogger(givm.GameLog);
+            var gvmLogger = new HubbedLogger();
+            var hubLogger = new ListBoxLoggerHub(svm.SettingsLog,
+                new Dictionary<IHubbedLogger, string>()
+                {
+                    { connectionLogger, "connection"},
+                    { gvmLogger, "game"},
+                    { gsLogger, "gameService"}
+                });
+            gs.GameLogger = gsGameLogger;
+            connection.Logger = connectionLogger;
+            gs.Logger = gsLogger;
+            gvm.Logger = gvmLogger;
             _pages = new List<BaseViewModel>() {
                 gvm, givm, svm
             };

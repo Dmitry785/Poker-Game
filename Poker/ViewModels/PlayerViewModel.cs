@@ -14,6 +14,21 @@ namespace Poker.ViewModels
         private string currentMove = string.Empty;
         public string Name => PlayerInfo.Name;
         public decimal Money => PlayerInfo.Money;
+        public int TimeLeft { get; set; }
+        public int MaxTime { get; set; }
+        public void Update(PlayerViewModel player)
+        {
+            PlayerInfo = player.PlayerInfo;
+            OnPropertyChanged(nameof(Name));
+            OnPropertyChanged(nameof(Money));
+            CurrentMove = PlayerInfo.CurrentMove;
+            IsDealer = player.IsDealer;
+            OnPropertyChanged(nameof(IsDealer));
+            IsCurrentPlayer = player.IsCurrentPlayer;
+            OnPropertyChanged(nameof(IsCurrentPlayer));
+            OnPropertyChanged(nameof(CurrentMoveVisibility));
+            OnPropertyChanged(nameof(Status));
+        }
         public string CurrentMove
         {
             get => currentMove;

@@ -35,7 +35,7 @@ namespace Poker.Connection
                 {
                     return new IPEndPoint(address, Port);
                 }
-                throw new Exception();
+                return new IPEndPoint(IPAddress.Loopback, Port);
             }
         }
         public int Port
@@ -56,18 +56,18 @@ namespace Poker.Connection
         }
         public async Task<bool> Send(IPEndPoint clientIP, byte[] data)
         {
-            Logger.Message($"Send(): Start sending to {clientIP}...");
+            Logger.Message($"Начата отправка {clientIP}...");
             var semaphore = _sendLocks.GetOrAdd(clientIP, _ => new SemaphoreSlim(1, 1));
             await semaphore.WaitAsync();
             try
             {
                 if (!_activeClients.TryGetValue(clientIP, out var client) || !client.Connected)
                 {
-                    Logger.Message($"Send(): Connecting to {clientIP}...");
+                    Logger.Message($"Требуется создать TCP {clientIP}...");
                     client?.Dispose();
                     client = new TcpClient();
                     await client.ConnectAsync(clientIP);
-                    Logger.Message($"Send(): Connected to {clientIP}");
+                    Logger.Message($"TCP установлено {clientIP}");
                     _activeClients[clientIP] = client;
                     _ = HandleTcpClient(client, clientIP, _cts.Token);
                 }
@@ -76,19 +76,19 @@ namespace Poker.Connection
                 await stream.WriteAsync(lengthPrefix, 0, 4);
                 await stream.WriteAsync(data, 0, data.Length);
                 await stream.FlushAsync();
-                Logger.Message($"Send(): Send succesful {clientIP}");
+                Logger.Message($"Отправка успешно выполнена {clientIP}");
                 return true;
             }
             catch(Exception ex)
             {
-                Logger.Message($"Send():  Send failed {clientIP} err: {ex.Message}");
+                Logger.Error($"Отправка не вополнена {clientIP}", ex.Message);
                 _activeClients.Remove(clientIP, out var client);
                 client?.Dispose();
                 return false;
             }
             finally
             {
-                Logger.Message($"Send():  cancelled");
+                Logger.Message($"Отправка закончена");
                 semaphore.Release();
             }
         }
@@ -109,7 +109,7 @@ namespace Poker.Connection
                         continue;
                     }
                     IPEndPoint endPoint = (IPEndPoint)incomeConnection.Client.RemoteEndPoint!; 
-                    Logger.Message($"Listener(): New tcp connection {endPoint}");
+                    Logger.Message($"Входящее TCP {endPoint}");
                     _activeClients[endPoint] = incomeConnection;
                     _ = HandleTcpClient(incomeConnection, endPoint, token);
                 }
@@ -119,13 +119,13 @@ namespace Poker.Connection
             }
             finally
             {
-                Logger.Message($"Listener():  connection has stopped");
+                Logger.Message($"Чтение завершено");
                 _listener.Stop();
             }
         }
         private async Task HandleTcpClient(TcpClient client, IPEndPoint endPoint, CancellationToken token)
         {
-            Logger.Message($"htc: Handle {endPoint}");
+            Logger.Message($"Обработка TCP {endPoint}");
             try
             {
                 using (client)
@@ -133,10 +133,6 @@ namespace Poker.Connection
                 {
                     while (!token.IsCancellationRequested)
                     {
-                        /*using (CancellationTokenSource timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(token))
-                        {
-                            timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
-                        }*/
                         byte[] lengthBuffer = new byte[4];
                         int bytesRead = await stream.ReadAsync(lengthBuffer, 0, 4, token);
                         if (bytesRead == 0) break;
@@ -150,12 +146,11 @@ namespace Poker.Connection
             }
             catch(Exception ex)
             {
-                Logger.Message($"htc: handle error {endPoint} err: {ex.Message}");
-                //логирование
+                Logger.Error($"Ошибка при обработке {endPoint}", ex.Message);
             }
             finally
             {
-                Logger.Message($"htc: handling cancelled {endPoint}");
+                Logger.Message($"Обработка завершена {endPoint}");
                 _activeClients.Remove(endPoint);
                 _sendLocks.TryRemove(endPoint, out _);
             }
@@ -168,7 +163,7 @@ namespace Poker.Connection
             }
             catch(Exception ex)
             {
-                Logger.Message($"htmess: handle message {endPoint} failed err: {ex.Message}");
+                Logger.Error($"Ошибка в сообщении {endPoint}", ex.Message);
             }
         }
         public void Dispose()

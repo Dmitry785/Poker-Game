@@ -129,10 +129,11 @@ namespace Poker.Services
         }
         public async Task SendBroadcast(DataTransferBase dto)
         {
-            foreach(var endPoint in _connectedPlayers.Values)
+            foreach(var endPoint in _connectedPlayers.Keys)
             {
-                await _connection.Send(endPoint, Serialize(dto));
+                await Send(endPoint, dto);
             }
+            await Send((Guid)hostPlayerId!, dto);
         }
         public void RegisterPlayer(Guid playerId, IPEndPoint endPoint)
         {

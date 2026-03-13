@@ -34,16 +34,14 @@ namespace Poker.Services
     }
     #region SignalBusMessages
     public abstract record BaseMessage;
-    public record PlayerUpdatedMessage(PlayerInfo player, string currentMove = "") : BaseMessage; 
-    public record PlayerLeftMessage(Guid pId) : BaseMessage;
+    public record ChatMessageReceivedMessage(string message, string senderName) : BaseMessage;
     public record PlayersUpdatedMessage(List<PlayerInfo> players) : BaseMessage;
     public record PrivateCardDealtMessage(List<PokerCard> hand) : BaseMessage;
-    public record TableStateChangedMessage(int dealerSeatIndex,
-        List<PokerCard> communityCards,
-        GameStage stage) : BaseMessage;
-    public record PlayerTurnMessage(int currentPlayerIndex, int pot) : BaseMessage;
-    public record GameResultsOccurred(Dictionary<Guid, HandCards> cards, 
+    public record TableStateChangedMessage(List<PokerCard> communityCards,
+        GameStage stage, decimal pot, int dealerIndex) : BaseMessage;
+    public record PlayerTurnMessage(int currentPlayerIndex, decimal currentMaxBet) : BaseMessage;
+    public record GameResultsOccurredMessage(Dictionary<Guid, HandCards> cards, 
         List<WinnerInfo> winners) : BaseMessage;
-    public record StateChangedMessage() : BaseMessage{ }
+    public record StateChangedMessage(Connection.ConnectionState state) : BaseMessage;
     #endregion
 }

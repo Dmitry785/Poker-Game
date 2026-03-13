@@ -11,6 +11,8 @@ namespace Poker.Services
     public record CallCommand : GameCommand;
     public record FoldCommand : GameCommand;
     public record CheckCommand : GameCommand;
+    public record SendCommonMessage(string message) : GameCommand;
+    //приватное сообщение
     public record BetRaiseCommand(decimal amount) : GameCommand;
     public record StartHostCommand : GameCommand;
     public record StartGameCommand : GameCommand;

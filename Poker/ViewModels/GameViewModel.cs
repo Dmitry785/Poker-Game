@@ -2,6 +2,7 @@
 using Poker.Services;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,23 +15,26 @@ namespace Poker.ViewModels
     {
         private GameService _game;
         public PokerTableViewModel PokerTableViewModel { get; }
+        public ILogger Logger = new NullLogger();
         public ICommand CallCommand { get; }
         public ICommand CheckCommand { get; }
         public ICommand BetRaiseCommand { get; }
         public ICommand FoldCommand { get; }
         public ICommand StartGameCommand { get; }
-        public decimal CurrentBet
+        public int CurrentBet
         {
             get => currentBet;
             set
             {
                 currentBet = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(TotalPotentialBet));
             }
         }
-        public decimal MaxBetRaise=> _game.LocalPlayer?.Money ?? 0;
+        public decimal MyBalance => _game.LocalPlayer?.Money ?? 0;
+        public decimal MaxBetRaise=> MyBalance;
         public decimal MinBetRaise => _game.MinBetRaise;
-        public bool IsMyTurn => _game.CurrentPlayerIndex == 0 && IsGameStarted;
+        public bool IsMyTurn => _game.LocalPlayer?.SeatIndex == _game.CurrentPlayerIndex && IsGameStarted;
         public bool IsGameStarted => _game.CurrentGameStage != GameStage.None;
         public decimal AmountToCall {
             get
@@ -47,49 +51,29 @@ namespace Poker.ViewModels
             _game.Players.Count > 1;
         public bool CanFold => IsMyTurn;
         public bool CanCheck => IsGameStarted && AmountToCall == 0 && IsMyTurn;
-        public bool CanCall
-        {
-            get
-            {
-                var localPlayer = _game.LocalPlayer;
-                if (localPlayer is null)
-                    return false;
-                return IsMyTurn && AmountToCall > 0 && localPlayer.Money > AmountToCall;
-            }
-        }
-        public bool CanBetRaise
-        {
-            get
-            {
-                var localPlayer = _game.LocalPlayer;
-                if (localPlayer is null)
-                    return false;
-                return IsMyTurn && localPlayer.Money > AmountToCall;
-            }
-        }
-        public bool CanAllIn
-        {
-            get
-            {
-                var localPlayer = _game.LocalPlayer;
-                if (localPlayer is null)
-                    return false;
-                return IsMyTurn && localPlayer.Money > 0;
-            }
-        }
+        public bool CanCall => 
+            IsMyTurn && AmountToCall > 0;
+        public bool CanBetRaise => 
+            IsMyTurn && MyBalance > AmountToCall &&
+            _game.MinBetRaise > 0;
+        public bool CanAllIn => IsMyTurn && MyBalance > 0;
         public decimal Pot => _game.Pot;
+        public string GameStatusText => _game.CurrentGameStage.ToString();
+        public decimal TotalPotentialBet => AmountToCall + CurrentBet;
         public GameViewModel(GameService game, SignalBus sb)
         {
+            _game = game;
             BetRaiseCommand = new Command(OnBetRaise);
             CallCommand = new Command(OnCall);
             CheckCommand = new Command(OnCheck);
             FoldCommand = new Command(OnFold);
             StartGameCommand = new Command(OnStartGame);
             PokerTableViewModel = new PokerTableViewModel();
-            sb.Subscribe<PlayerUpdatedMessage>(HandlePlayerUpdatedMessage);
+            sb.Subscribe<PlayersUpdatedMessage>(HandlePlayersUpdatedMessage);
+            sb.Subscribe<PlayerTurnMessage>(HandlePlayerTurnMessage);
             sb.Subscribe<TableStateChangedMessage>(HandleTableStateChangedMessage);
-            sb.Subscribe<PlayerLeftMessage>(HandlePlayerLeftMessage);
-            _game = game;
+            sb.Subscribe<PrivateCardDealtMessage>(HandlePrivateCardDealtMessage);
+            sb.Subscribe<GameResultsOccurredMessage>(HandleGameResultsOccurredMessage);
         }
         private async void OnStartGame()
         {
@@ -111,9 +95,8 @@ namespace Poker.ViewModels
         {
             await _game.HandleLocalCommand(new FoldCommand());
         }
-        private void OnGameChanged()
+        private void RefreshAll()
         {
-            OnPropertyChanged(nameof(IsMyTurn));
             OnPropertyChanged(nameof(CanStartGame));
             OnPropertyChanged(nameof(CanFold));
             OnPropertyChanged(nameof(CanCheck));
@@ -123,21 +106,33 @@ namespace Poker.ViewModels
             OnPropertyChanged(nameof(Pot));
             OnPropertyChanged(nameof(MaxBetRaise));
             OnPropertyChanged(nameof(MinBetRaise));
+            OnPropertyChanged(nameof(GameStatusText));
         }
-        private void HandlePlayerLeftMessage(PlayerLeftMessage message)
+        private void HandlePrivateCardDealtMessage(PrivateCardDealtMessage message)
         {
-
+            PokerTableViewModel.SetHand(message.hand);
         }
-        private void HandlePlayerUpdatedMessage(PlayerUpdatedMessage message)
+        private void HandlePlayersUpdatedMessage(PlayersUpdatedMessage message)
         {
-            PokerTableViewModel.UpsertPlayer(message.player, message.currentMove);
-            OnGameChanged();
+            PokerTableViewModel.UpdatePlayers(message.players);
+            RefreshAll();
+        }
+        private void HandlePlayerTurnMessage(PlayerTurnMessage message)
+        {
+            PokerTableViewModel.SetCurrentPlayerIndex(message.currentPlayerIndex);
+            RefreshAll();
+        }
+        private void HandleGameResultsOccurredMessage(GameResultsOccurredMessage message)
+        {
+            RefreshAll();
         }
         private void HandleTableStateChangedMessage(TableStateChangedMessage message)
         {
             PokerTableViewModel.UpdateCommunityCards(message.communityCards);
-            OnGameChanged();
+            PokerTableViewModel.SetDealerIndex(message.dealerIndex);
+            PokerTableViewModel.Pot = message.pot;
+            RefreshAll();
         }
-        private decimal currentBet = 0;
+        private int currentBet = 0;
     }
 }

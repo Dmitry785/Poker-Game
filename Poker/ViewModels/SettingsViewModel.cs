@@ -69,6 +69,6 @@ namespace Poker.ViewModels
             OnPropertyChanged(nameof(CanHost));
             OnPropertyChanged(nameof(CanDisconnect));
         }
-        private string hostIP = "localhost:7777";
+        private string hostIP = "127.0.0.1:7777";
     }
 }

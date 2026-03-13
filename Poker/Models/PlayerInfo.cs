@@ -21,6 +21,7 @@ namespace Poker.Models
         public HandCards? Hand { get; set; }
         public decimal CurrentBet { get; set; }
         public int SeatIndex { get; set; }
+        public string CurrentMove { get; set; } = string.Empty;
         public PlayerStatus Status { get; set; } = PlayerStatus.Out;
         public PlayerInfo()
         {

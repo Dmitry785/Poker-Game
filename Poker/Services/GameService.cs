@@ -1,5 +1,6 @@
 ﻿using Poker.Connection;
 using Poker.Models;
+using Poker.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +17,8 @@ namespace Poker.Services
     public partial class GameService
     {
         public ILogger Logger = new NullLogger();
-        public ConnectionState State
-        {
-            get => _connection.State;
-        }
+        public ILogger GameLogger = new NullLogger();
+        public ConnectionState State => _connection.State;
         public int CurrentPlayerIndex => currentPlayerIndex;
         public GameStage CurrentGameStage => gameStage;
         public decimal CurrentMaxBet => maxBet;
@@ -36,7 +35,7 @@ namespace Poker.Services
             }
         }
         public List<PlayerInfo> Players=> players.Players;
-        public PlayerInfo? LocalPlayer => players.Players.Find(x => x.SeatIndex == 0);
+        public PlayerInfo? LocalPlayer => players.Players.Find(x => x.PlayerId == SelfPlayerId);
         public object CurrentAddress => _connection.CurrentAddress;
         public GameService(SignalBus signalBus, GameConfig config, ConnectionManager connection)
         {
@@ -66,27 +65,59 @@ namespace Poker.Services
             await _connection.Send(connectingClient.PlayerId, new GameStateAll(roomName, dealerIndex,
                 smallBling, bigBlind, currentMaxBet, lastRaiseStep, pot, communityCards.Cards,
                 gameStage, currentPlayerIndex, players.Players, connectingClient.PlayerId));
-            OnPlayerUpsert(connectingClient);
+            OnPlayersUpdated();
         }
-        private void HandleClientNewMessage(Guid playerId, DataTransferBase message)
+        private async void HandleClientNewMessage(Guid playerId, DataTransferBase message)
         {
+            Logger.Message($"Сообщение от {playerId} {message}");
             PlayerInfo p = players.Players.First(x => x.PlayerId == playerId);
             switch (message)
             {
                 case ClientMove c:
                     _timerCts?.Cancel();
                     break;
+                case ClientDisconnectData c:
+                    break;
+                case ClientChatMessaged c:
+                    await _connection.SendBroadcast(new GameChatMessaged(playerId, c.message));
+                    break;
+                case ClientReconnectData c://cs
+                    break;
             }
         }
-        private void HandleMessageFromHost(DataTransferBase message)
+        private async void HandleMessageFromHost(DataTransferBase message)
         {
+            Logger.Message($"Сообщение от хоста {message}");
             switch (message)
             {
                 case DealCardsData c:
                     LocalPlayer!.SetHand(c.hand);
-                    _signalBus.Publish(new PrivateCardDealtMessage(c.hand));
+                    OnPrivateCardDealt();
+                    break;
+                case GameStateAll c:
+                    ApplyGameStateAll(c);
+                    break;
+                case GameHostingClosed c:
+                    if (State is ConnectionState.Hosting)
+                        break;
+                    await Disconnect();
+                    break;
+                case GameChatMessaged c:
+                    OnGameChatMessaged(players.GetById(c.senderId)!.Name, c.message);
+                    break;
+                case GameUpdated c:
+                    break;
+                case ClientConnected c:
+                    break;
+                case GameStateUpdated c:
+                    break;
+                case ConnectionDeclined c:
+                    Logger.Error("Не удалось подключиться к хосту", c.reason);
                     break;
             }
+            /*
+    public record InviteData(IPEndPoint hostEndPoint) : DataTransferBase;ифровать
+    public record ConnectionDeclined(string reason) : DataTransferBase;*/
         }
         private void ApplyConfig(GameConfig config)
         {
@@ -104,7 +135,7 @@ namespace Poker.Services
                 if (LocalPlayer is not null)
                 {
                     LocalPlayer.Name = value;
-                    OnPlayerUpsert(LocalPlayer);
+                    OnPlayersUpdated();
                 }
                 clientName = value;
             }
@@ -119,54 +150,51 @@ namespace Poker.Services
         }
         public async Task HandleLocalCommand(GameCommand command)
         {
-            if(await HandleSystemCommand(command))
-                return;
-            if (State is ConnectionState.NotConnected)
-                return;
-            switch (command)
-            {
-                case BetRaiseCommand c:
-                    break;
-                case CallCommand c:
-                    break;
-                case FoldCommand c:
-                    break;
-                case CheckCommand c:
-                    break;
-                case StartGameCommand c:
-                    break;
-            }
-            /*ublic abstract record GameCommand;
-        public record CallCommand : GameCommand;
-        public record FoldCommand : GameCommand;
-        public record CheckCommand : GameCommand;
-        public record BetRaiseCommand(decimal amount) : GameCommand;
-        public record StartHostCommand : GameCommand;
-        public record StartGameCommand : GameCommand;
-        public record ConnectCommand(IPEndPoint hostEndPoint) : GameCommand;
-        public record DisconnectCommand(string reason = "") : GameCommand;*/
-    }
-        private async Task<bool> HandleSystemCommand(GameCommand command)
-        {
+            Logger.Message($"Действие {command}");
             switch (command)
             {
                 case DisconnectCommand c:
                     if (State is ConnectionState.NotConnected)
-                        return true;
-                    await OnDisconnected();
-                    return true;
+                        break;
+                    await Disconnect();
+                    break;
                 case ConnectCommand c:
                     if (State is not ConnectionState.NotConnected)
-                        return true;
-                    await OnConnect(c.hostEndPoint);
-                    return true;
+                        break;
+                    await Connect(c.hostEndPoint);
+                    break;
                 case StartHostCommand c:
                     if (State is not ConnectionState.NotConnected)
-                        return true;
-                    OnStartHosting();
-                    return true;
+                        break;
+                    StartHost();
+                    break;
+                default:
+                    if (State is ConnectionState.NotConnected 
+                        or ConnectionState.Connecting)
+                        break;
+                    switch (command)
+                    {
+                        case BetRaiseCommand c:
+                            await _connection.SendToHost(new ClientMove(ClientMoveType.BetRaise, c.amount));
+                            break;
+                        case SendCommonMessage c:
+                            await _connection.SendToHost(new ClientChatMessaged(c.message));
+                            break;
+                        case CallCommand c:
+                            await _connection.SendToHost(new ClientMove(ClientMoveType.Call));
+                            break;
+                        case FoldCommand c:
+                            await _connection.SendToHost(new ClientMove(ClientMoveType.Fold));
+                            break;
+                        case CheckCommand c:
+                            await _connection.SendToHost(new ClientMove(ClientMoveType.Check));
+                            break;
+                        case StartGameCommand c:
+                            await StartGame();
+                            break;
+                    }
+                    break;
             }
-            return false;
         }
         private CardDeck cardDeck = new CardDeck();
         private CommunityCards communityCards = new CommunityCards();
@@ -233,12 +261,12 @@ namespace Poker.Services
 
     public partial class GameService
     {
-        private async Task OnConnect(IPEndPoint endPoint)
+        private async Task Connect(IPEndPoint endPoint)
         {
             var isConnected = await _connection.Connect(endPoint, 
                 new ClientConnectData(clientName));
         }
-        private void OnStartHosting()
+        private void StartHost()
         {
             ResetInternalState();
             var player = new PlayerInfo(ClientName, startMoney, 0);
@@ -246,7 +274,7 @@ namespace Poker.Services
             SelfPlayerId = player.PlayerId;
             _connection.StartHosting(player.PlayerId);
             OnStateChanged();
-            OnPlayerUpsert(player);
+            OnPlayersUpdated();
         }
         private void ResetInternalState()
         {
@@ -259,11 +287,13 @@ namespace Poker.Services
             pot = 0;
             gameStage = GameStage.None;
         }
-        private async Task OnDisconnected()
+        private async Task Disconnect()
         {
             ResetInternalState();
             await _connection.Disconnect();
             OnStateChanged();
+            OnTableStateChanged();
+            OnPlayersUpdated();
         }
         private void ApplyGameStateUpdated(GameStateUpdated s)
         {
@@ -290,17 +320,17 @@ namespace Poker.Services
             OnTableStateChanged();
             OnPlayersUpdated();
         }
-        private void CorrelatePlayerIndex(ref int playerIndex, int difference)
+        private int CorrelatePlayerIndex(int playerIndex)
         {
-            playerIndex = (maxPlayers - difference + playerIndex) % maxPlayers;
+            return (maxPlayers - CorrelationDifference + playerIndex) % maxPlayers;
         }
-        private int CorrelatePlayerIndex(int playerIndex, int difference)
+        private bool CanStartGame()
         {
-            return (maxPlayers - difference + playerIndex) % maxPlayers;
+            return players.Players.Count > 1 && gameStage is GameStage.None && State is ConnectionState.Hosting;
         }
-        private async Task OnGameStarted()
+        private async Task StartGame()
         {
-            if (players.Players.Count <= 1 || gameStage != GameStage.None || State is not ConnectionState.Hosting)
+            if (!CanStartGame())
                 return;
             foreach (PlayerInfo p in players.Players)
             {
@@ -484,35 +514,54 @@ namespace Poker.Services
             await _connection.Send(playerId, new GameHostingClosed(reason));
             _connection.RemovePlayer(playerId);
             await _connection.SendBroadcast(new GameUpdated(playerId, GameUpdatedType.Disconnected));
-            OnPlayerdLeft(playerId);
+            OnPlayersUpdated();
         }
-        private int CorrelationDifference => players.Players.Find(x => x.PlayerId == SelfPlayerId)!.SeatIndex;
+        private int CorrelationDifference => players.Players.Find(x => x.PlayerId ==
+        SelfPlayerId)?.SeatIndex ?? -1;
+        private void OnPlayerTurn()
+        {
+            _signalBus.Publish(new PlayerTurnMessage(currentPlayerIndex, currentMaxBet));
+        }
         private void OnTableStateChanged()
         {
-            int correlatedDealerIndex = CorrelatePlayerIndex(dealerIndex, CorrelationDifference);
-            int correlatedCurrentPlayerIndex = CorrelatePlayerIndex(currentPlayerIndex, CorrelationDifference);
-            _signalBus.Publish(new TableStateChangedMessage(correlatedDealerIndex,
-                communityCards.Cards, gameStage));
+            _signalBus.Publish(new TableStateChangedMessage(
+                communityCards.Cards,
+                gameStage, pot, CorrelatePlayerIndex(dealerIndex)));
         }
         private void OnPlayersUpdated()
         {
-            _signalBus.Publish(new PlayersUpdatedMessage(
-                players.GetCorrelated((Guid)SelfPlayerId!)));
-        }
-        private void OnPlayerUpsert(PlayerInfo player)
-        {
-            _signalBus.Publish(new PlayerUpdatedMessage(player));
-        }
-        private void OnPlayerdLeft(Guid id)
-        {
-            _signalBus.Publish(new PlayerLeftMessage(id));
+            if(SelfPlayerId is null)
+                _signalBus.Publish(new PlayersUpdatedMessage(new List<PlayerInfo>()));
+            else
+                _signalBus.Publish(new PlayersUpdatedMessage(
+                    players.GetCorrelated((Guid)SelfPlayerId!)));
         }
         private void OnStateChanged()
         {
-            _signalBus.Publish(new StateChangedMessage());
+            _signalBus.Publish(new StateChangedMessage(State));
         }
+        private void OnPrivateCardDealt()
+        {
+            _signalBus.Publish(new PrivateCardDealtMessage(LocalPlayer!.Hand!.Cards));
+        }
+        private void OnGameResultsOccured()
+        {
+        }
+        private void OnGameChatMessaged(string name, string message)
+        {
+            _signalBus.Publish(new ChatMessageReceivedMessage(message, name));
+        }
+        /*
+    public record PlayersUpdatedMessage(List<PlayerInfo> players) : BaseMessage;
+    public record PrivateCardDealtMessage(List<PokerCard> hand) : BaseMessage;
+    public record TableStateChangedMessage(List<PokerCard> communityCards,
+        GameStage stage, decimal pot, int dealerIndex) : BaseMessage;
+    public record PlayerTurnMessage(int currentPlayerIndex, decimal currentMaxBet) : BaseMessage;
+    public record GameResultsOccurred(Dictionary<Guid, HandCards> cards, 
+        List<WinnerInfo> winners) : BaseMessage;
+    public record StateChangedMessage(Connection.ConnectionState state) */
     }
-    public class GameConfig
+        public class GameConfig
     {
         public decimal StartMoney;
         public decimal MinBet;

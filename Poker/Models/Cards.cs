@@ -12,6 +12,9 @@ namespace Poker.Models
     {
         public PokerCardNumber CardNumber { get; set; }
         public PokerCardSuit CardSuit { get; set; }
+        public PokerCard()
+        { 
+        }
         public PokerCard(PokerCardNumber number,  PokerCardSuit suit)
         {
             CardNumber = number;

@@ -22,20 +22,24 @@ namespace Poker.Connection
     [JsonDerivedType(typeof(ClientConnected), typeDiscriminator: "clientConnected")]
     [JsonDerivedType(typeof(DealCardsData), typeDiscriminator: "dealCardsData")]
     [JsonDerivedType(typeof(InviteData), typeDiscriminator: "inviteData")]
+    [JsonDerivedType(typeof(ClientReconnectData), typeDiscriminator: "clientReconnectData")]
     [JsonDerivedType(typeof(GameHostingClosed), typeDiscriminator: "gameHostingClosed")]
+    [JsonDerivedType(typeof(GameChatMessaged), typeDiscriminator: "gameChatMessaged")]
+    [JsonDerivedType(typeof(ClientChatMessaged), typeDiscriminator: "clientChatMessaged")]
     public abstract record DataTransferBase { }
 
     public record ClientConnectData(string name) : DataTransferBase;
+    public record ClientReconnectData(Guid id) : DataTransferBase;
     public record ClientDisconnectData(string reason) : DataTransferBase;
-    public record ClientMove(ClientMoveType moveType, int? amount = null) : DataTransferBase;
+    public record ClientMove(ClientMoveType moveType, decimal? amount = null) : DataTransferBase;
     public enum ClientMoveType
     {
         Call,
-        Bet,
+        BetRaise,
         Fold,
-        Check,
-        Raise
+        Check
     }
+    public record ClientChatMessaged(string message) : DataTransferBase;
     public record GameHostingClosed(string reason) : DataTransferBase;
     public record GameUpdated(Guid playeId, GameUpdatedType updateType, int? amount = null) : DataTransferBase;
     public enum GameUpdatedType
@@ -48,6 +52,7 @@ namespace Poker.Connection
         Disconnected
     }
     public record ClientConnected(PlayerInfo player) : DataTransferBase;
+    public record GameChatMessaged(Guid senderId, string message) : DataTransferBase;
     public record InviteData(IPEndPoint hostEndPoint) : DataTransferBase;
     public record GameStateAll(string roomName, int dealerIndex,
         decimal smallBlind, decimal bigBlind, decimal currentMaxBet, decimal lastRaiseStep,
